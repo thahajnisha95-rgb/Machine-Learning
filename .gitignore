@@ -1,0 +1,18 @@
+# Local Python environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local Django database and collected static files
+db.sqlite3
+*.sqlite3
+staticfiles/
+
+# Trained model output (regenerate with: python manage.py train_recommender)
+recommender_model.json
+
+# Secrets
+.env
