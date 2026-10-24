@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login — Student Learning System</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 12px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #e2e8f0;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,.06);
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: .5; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+
+        .card-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 460px;
+            padding: 16px;
+            animation: slideUp .7s cubic-bezier(.22,1,.36,1) both;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(32px) scale(.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card {
+            padding: 40px 36px 32px;
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 20px;
+            background: rgba(255,255,255,.05);
+            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 16px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.03) inset;
+        }
+
+        .card-header { text-align: center; margin-bottom: 30px; }
+        .logo-ring {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #6c63ff, #38bdf8);
+            font-size: 28px;
+            box-shadow: 0 8px 24px rgba(108,99,255,.45);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(108,99,255,.4); }
+            50%      { box-shadow: 0 8px 38px rgba(108,99,255,.7); }
+        }
+        .card-header h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: -.4px;
+            background: linear-gradient(135deg, #a78bfa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card-header p { margin-top: 7px; color: rgba(255,255,255,.45); font-size: .9rem; }
+
+        .messages { margin-bottom: 20px; }
+        .alert, .non-field-errors li {
+            margin-bottom: 8px;
+            padding: 11px 14px;
+            border: 1px solid rgba(255,80,80,.3);
+            border-radius: 10px;
+            background: rgba(255,80,80,.12);
+            color: #fca5a5;
+            font-size: .85rem;
+            list-style: none;
+            animation: fadeIn .4s ease;
+        }
+        .alert-success {
+            border-color: rgba(72,199,142,.35);
+            background: rgba(72,199,142,.15);
+            color: #6ee7b7;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .form-group { margin-bottom: 20px; animation: fadeIn .5s ease both; }
+        .form-group:nth-of-type(1) { animation-delay: .05s; }
+        .form-group:nth-of-type(2) { animation-delay: .12s; }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,.7);
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+        .input-wrap { position: relative; display: flex; align-items: center; }
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: rgba(255,255,255,.4);
+            pointer-events: none;
+            transition: color .2s;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 13px 14px 13px 42px;
+            border: 1.5px solid rgba(255,255,255,.12);
+            border-radius: 12px;
+            outline: none;
+            background: rgba(255,255,255,.06);
+            color: #fff;
+            font: inherit;
+            font-size: .95rem;
+            transition: border-color .25s, background .25s, box-shadow .25s;
+        }
+        input::placeholder { color: rgba(255,255,255,.3); }
+        input:focus {
+            border-color: #6c63ff;
+            background: rgba(108,99,255,.1);
+            box-shadow: 0 0 0 3px rgba(108,99,255,.2);
+        }
+        .input-wrap:focus-within .input-icon { color: #a78bfa; }
+        .errorlist { margin-top: 7px; padding: 0; list-style: none; }
+        .errorlist li {
+            margin-top: 4px;
+            padding: 5px 10px;
+            border-left: 3px solid #f87171;
+            border-radius: 6px;
+            background: rgba(255,80,80,.1);
+            color: #fca5a5;
+            font-size: .8rem;
+        }
+
+        .btn-submit {
+            position: relative;
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6c63ff, #38bdf8);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: .3px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(108,99,255,.4);
+            transition: transform .15s, box-shadow .25s;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(108,99,255,.55); }
+        .btn-submit:active { transform: translateY(0); }
+        .btn-submit::after {
+            position: absolute;
+            inset: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+            content: '';
+            transition: transform .5s ease;
+        }
+        .btn-submit:hover::after { transform: translateX(100%); }
+
+        .divider { height: 1px; margin: 24px 0; background: rgba(255,255,255,.08); }
+        .card-footer { color: rgba(255,255,255,.45); font-size: .875rem; text-align: center; }
+        .card-footer a {
+            border-bottom: 1px solid transparent;
+            color: #a78bfa;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color .2s, border-color .2s;
+        }
+        .card-footer a:hover { border-color: #38bdf8; color: #38bdf8; }
+
+        @media (max-width: 480px) {
+            .card { padding: 32px 22px 26px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles" aria-hidden="true"></div>
+
+    <main class="card-wrapper">
+        <section class="card" aria-labelledby="login-title">
+            <header class="card-header">
+                <div class="logo-ring" aria-hidden="true">🎓</div>
+                <h1 id="login-title">Student Login</h1>
+                <p>Sign in to continue your learning journey</p>
+            </header>
+
+            {% if messages %}
+            <div class="messages" role="status">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+            <ul class="non-field-errors" role="alert">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    <div class="input-wrap">
+                        <span class="input-icon" aria-hidden="true">👤</span>
+                        {{ form.username }}
+                    </div>
+                    {% if form.username.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <div class="input-wrap">
+                        <span class="input-icon" aria-hidden="true">🔒</span>
+                        {{ form.password }}
+                    </div>
+                    {% if form.password.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn-submit">Sign In →</button>
+            </form>
+
+            <div class="divider"></div>
+            <footer class="card-footer">
+                New student? <a href="{% url 'register' %}">Create an account</a>
+            </footer>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            const container = document.getElementById('particles');
+            if (!container || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            for (let i = 0; i < 22; i++) {
+                const particle = document.createElement('span');
+                const size = Math.random() * 70 + 8;
+                particle.className = 'particle';
+                particle.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${Math.random() * 100}%;
+                    animation-duration: ${Math.random() * 22 + 14}s;
+                    animation-delay: ${Math.random() * -30}s;
+                `;
+                container.appendChild(particle);
+            }
+        })();
+    </script>
+</body>
+</html>

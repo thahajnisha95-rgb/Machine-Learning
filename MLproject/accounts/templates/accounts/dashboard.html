@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Learning Dashboard</title>
+    <style>
+        /* ── Reset & Base ─────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ── Animated particles ───────────────────────────── */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.5; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+
+        /* ── Layout ───────────────────────────────────────── */
+        .page-wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1020px;
+            margin: 0 auto;
+            padding: 28px 16px 48px;
+        }
+
+        /* ── Header bar ───────────────────────────────────── */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 28px;
+            animation: slideDown 0.6s cubic-bezier(.22,1,.36,1) both;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .header-title h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.4px;
+            margin-bottom: 4px;
+        }
+        .user-meta {
+            font-size: .85rem;
+            color: rgba(255,255,255,.45);
+        }
+        .user-meta strong {
+            color: rgba(255,255,255,.75);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-api {
+            background: rgba(108,99,255,.15);
+            color: #a78bfa;
+            border: 1px solid rgba(167,139,250,.3);
+            padding: 9px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: .82rem;
+            font-weight: 600;
+            transition: background .2s, border-color .2s, transform .15s;
+            white-space: nowrap;
+        }
+        .btn-api:hover {
+            background: rgba(108,99,255,.3);
+            border-color: rgba(167,139,250,.6);
+            transform: translateY(-1px);
+        }
+
+        .btn-logout {
+            background: rgba(239,68,68,.12);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,.3);
+            padding: 9px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: .82rem;
+            font-weight: 600;
+            transition: background .2s, border-color .2s, transform .15s;
+            white-space: nowrap;
+        }
+        .btn-logout:hover {
+            background: rgba(239,68,68,.25);
+            border-color: rgba(239,68,68,.5);
+            transform: translateY(-1px);
+        }
+
+        /* ── Flash messages ───────────────────────────────── */
+        .messages { margin-bottom: 22px; }
+        .alert {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: .875rem;
+            margin-bottom: 8px;
+            animation: fadeIn .4s ease;
+            backdrop-filter: blur(8px);
+        }
+        .alert-success {
+            background: rgba(72,199,142,.15);
+            border: 1px solid rgba(72,199,142,.35);
+            color: #6ee7b7;
+        }
+        .alert-error {
+            background: rgba(255,80,80,.12);
+            border: 1px solid rgba(255,80,80,.3);
+            color: #fca5a5;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        /* ── Glass card base ──────────────────────────────── */
+        .card {
+            background: rgba(255,255,255,.05);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 20px;
+            padding: 26px 28px;
+            margin-bottom: 22px;
+            box-shadow: 0 16px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.03) inset;
+            animation: fadeUp .6s cubic-bezier(.22,1,.36,1) both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: none; }
+        }
+        .card:nth-child(2) { animation-delay: .06s; }
+        .card:nth-child(3) { animation-delay: .12s; }
+        .card:nth-child(4) { animation-delay: .18s; }
+        .card:nth-child(5) { animation-delay: .24s; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Buttons ──────────────────────────────────────── */
+        .btn-primary {
+            background: linear-gradient(135deg, #6c63ff, #38bdf8);
+            color: #fff;
+            text-decoration: none;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: .82rem;
+            font-weight: 700;
+            transition: transform .15s, box-shadow .2s;
+            box-shadow: 0 4px 16px rgba(108,99,255,.4);
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108,99,255,.55);
+        }
+
+        .tag-type {
+            background: rgba(255,255,255,.08);
+            color: rgba(255,255,255,.5);
+            font-size: .72rem;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border: 1px solid rgba(255,255,255,.1);
+            white-space: nowrap;
+        }
+
+        /* ── Stats grid ───────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            background: rgba(108,99,255,.1);
+            border: 1px solid rgba(108,99,255,.2);
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+            transition: transform .2s, background .2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -40%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(108,99,255,.25) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(108,99,255,.18);
+        }
+
+        .stat-number {
+            font-size: 2.1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: .78rem;
+            color: rgba(255,255,255,.5);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        /* ── Profile ──────────────────────────────────────── */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .profile-item {
+            background: rgba(255,255,255,.06);
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.08);
+            transition: border-color .2s;
+        }
+        .profile-item:hover { border-color: rgba(167,139,250,.3); }
+
+        .profile-label {
+            font-size: .72rem;
+            color: rgba(255,255,255,.4);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .profile-value {
+            font-size: .95rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        /* ── Interest tags ────────────────────────────────── */
+        .tag {
+            display: inline-block;
+            background: rgba(108,99,255,.2);
+            color: #a78bfa;
+            padding: 5px 13px;
+            border-radius: 20px;
+            margin: 4px 4px 4px 0;
+            font-size: .8rem;
+            font-weight: 600;
+            border: 1px solid rgba(167,139,250,.25);
+            transition: background .2s;
+        }
+        .tag:hover { background: rgba(108,99,255,.35); }
+
+        .tag-category {
+            background: rgba(52,211,153,.15);
+            color: #6ee7b7;
+            font-size: .7rem;
+            padding: 3px 9px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid rgba(52,211,153,.2);
+        }
+
+        .tag-difficulty {
+            font-size: .7rem;
+            padding: 3px 9px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .difficulty-beginner     { background: rgba(56,189,248,.15);  color: #7dd3fc; border: 1px solid rgba(56,189,248,.2); }
+        .difficulty-intermediate { background: rgba(251,191,36,.12);  color: #fcd34d; border: 1px solid rgba(251,191,36,.2); }
+        .difficulty-advanced     { background: rgba(239,68,68,.12);   color: #fca5a5; border: 1px solid rgba(239,68,68,.2); }
+
+        .tag-status {
+            font-size: .7rem;
+            padding: 3px 9px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        .status-completed   { background: rgba(72,199,142,.15);  color: #6ee7b7; border: 1px solid rgba(72,199,142,.2); }
+        .status-in-progress { background: rgba(251,191,36,.12);  color: #fcd34d; border: 1px solid rgba(251,191,36,.2); }
+        .status-saved       { background: rgba(167,139,250,.15); color: #c4b5fd; border: 1px solid rgba(167,139,250,.2); }
+
+        /* ── Skills grid ──────────────────────────────────── */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .skill-card {
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            padding: 18px;
+            transition: transform .2s, border-color .25s, background .2s;
+        }
+        .skill-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(167,139,250,.35);
+            background: rgba(108,99,255,.1);
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .skill-name {
+            font-size: .98rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin: 0;
+        }
+        .match-badge {
+            background: linear-gradient(135deg, #6c63ff, #38bdf8);
+            color: #fff;
+            padding: 3px 9px;
+            border-radius: 10px;
+            font-size: .7rem;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(108,99,255,.4);
+        }
+        .match-reason {
+            font-size: .75rem;
+            color: #a78bfa;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .skill-desc {
+            font-size: .8rem;
+            color: rgba(255,255,255,.45);
+            line-height: 1.5;
+            margin: 10px 0 12px;
+        }
+        .skill-resources-note {
+            font-size: .75rem;
+            color: rgba(255,255,255,.35);
+            font-weight: 500;
+        }
+
+        /* ── Resource list ────────────────────────────────── */
+        .resource-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .resource-item {
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            transition: border-color .2s, background .2s;
+        }
+        .resource-item:hover {
+            border-color: rgba(167,139,250,.3);
+            background: rgba(108,99,255,.07);
+        }
+
+        .resource-info { flex: 1; min-width: 240px; }
+        .resource-title {
+            font-size: .92rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        .resource-desc {
+            font-size: .78rem;
+            color: rgba(255,255,255,.4);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .resource-meta {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .resource-actions {
+            display: flex;
+            gap: 7px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Action buttons inside resource rows */
+        .btn-action {
+            background: rgba(255,255,255,.07);
+            color: rgba(255,255,255,.6);
+            border: 1px solid rgba(255,255,255,.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: .75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, color .2s, border-color .2s;
+        }
+        .btn-action:hover {
+            background: rgba(255,255,255,.12);
+            color: #fff;
+        }
+        .btn-action-primary {
+            background: rgba(108,99,255,.18);
+            color: #a78bfa;
+            border-color: rgba(108,99,255,.3);
+        }
+        .btn-action-primary:hover {
+            background: rgba(108,99,255,.32);
+            color: #c4b5fd;
+        }
+        .btn-action-complete {
+            background: rgba(72,199,142,.12);
+            color: #6ee7b7;
+            border-color: rgba(72,199,142,.25);
+        }
+        .btn-action-complete:hover {
+            background: rgba(72,199,142,.25);
+        }
+
+        .btn-link {
+            background: linear-gradient(135deg, #6c63ff, #38bdf8);
+            color: #fff;
+            text-decoration: none;
+            padding: 7px 15px;
+            border-radius: 8px;
+            font-size: .78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: transform .15s, box-shadow .2s;
+            box-shadow: 0 3px 10px rgba(108,99,255,.4);
+            display: inline-block;
+        }
+        .btn-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 16px rgba(108,99,255,.55);
+        }
+
+        /* ── Empty state ──────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 28px 16px;
+            color: rgba(255,255,255,.35);
+        }
+        .empty-state p {
+            margin-bottom: 16px;
+            font-size: .88rem;
+            line-height: 1.6;
+        }
+
+        /* ── Sub-text in cards ────────────────────────────── */
+        .card-subtext {
+            font-size: .82rem;
+            color: rgba(255,255,255,.35);
+            margin-top: 0;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        /* ── Divider line ─────────────────────────────────── */
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,.07);
+            margin: 16px 0;
+        }
+
+        /* ── Scrollbar ────────────────────────────────────── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(167,139,250,.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(167,139,250,.5); }
+    </style>
+</head>
+<body>
+
+<!-- Floating background particles -->
+<div class="particles" id="particles"></div>
+
+<div class="page-wrapper">
+
+    <!-- ── Header ── -->
+    <div class="header-bar">
+        <div class="header-title">
+            <h1>🎓 Welcome to Your Learning Dashboard!</h1>
+            <div class="user-meta">Logged in as <strong>{{ request.user.username }}</strong></div>
+        </div>
+        <div class="nav-actions">
+            <a href="{% url 'api_recommendations' %}" target="_blank" class="btn-api">⚡ Recommendations API</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Log out</a>
+        </div>
+    </div>
+
+    <!-- ── Flash messages ── -->
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- ── Tracker Overview ── -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📈 My Learning Tracker</h2>
+            <span class="tag-type">Student Analytics</span>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ completed_count }}</div>
+                <div class="stat-label">Completed Courses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ in_progress_count }}</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ saved_count }}</div>
+                <div class="stat-label">Saved for Later</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ total_skills }}</div>
+                <div class="stat-label">Available Skill Tracks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Student Profile ── -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">👤 Student Profile</h2>
+            <a href="{% url 'edit_profile' %}" class="btn-primary">
+                {% if profile and profile.full_name %}Edit Profile{% else %}Complete Profile{% endif %}
+            </a>
+        </div>
+
+        {% if profile and profile.full_name %}
+            <div class="profile-grid">
+                <div class="profile-item">
+                    <div class="profile-label">Full Name</div>
+                    <div class="profile-value">{{ profile.full_name }}</div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-label">Course / Degree</div>
+                    <div class="profile-value">{{ profile.course|default:"Not specified" }}</div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-label">Year of Study</div>
+                    <div class="profile-value">Year {{ profile.year_of_study }}</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div>
+                <div class="profile-label" style="margin-bottom:10px;">Registered Interests</div>
+                {% if profile.get_interests_list %}
+                    <div>
+                        {% for interest in profile.get_interests_list %}
+                            <span class="tag">{{ interest }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="color: rgba(255,255,255,.3); font-size:.85rem; margin:0;">
+                        No specific interests added yet. Click 'Edit Profile' to add your interests!
+                    </p>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>You haven't set up your student profile details yet.</p>
+                <a href="{% url 'edit_profile' %}" class="btn-primary">Set Up Profile Now</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ── AI Skill Recommendations ── -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🤖 AI Skill Recommendations</h2>
+            <span class="tag-type">{{ recommendations.engine_version|default:"ML TF-IDF Model" }}</span>
+        </div>
+
+        <p class="card-subtext">
+            Personalized skill match powered by TF-IDF Vectorization, Cosine Similarity, and academic year alignment:
+        </p>
+
+        {% if recommendations and recommendations.recommended_skills %}
+            <div class="skills-grid">
+                {% for rec in recommendations.recommended_skills %}
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <h3 class="skill-name">{{ rec.skill_name }}</h3>
+                            {% if rec.match_percentage > 0 %}
+                                <span class="match-badge">{{ rec.match_percentage }}% Match</span>
+                            {% endif %}
+                        </div>
+
+                        {% if rec.category %}
+                            <div style="margin-bottom:8px;">
+                                <span class="tag-category">{{ rec.category }}</span>
+                            </div>
+                        {% endif %}
+
+                        {% for reason in rec.match_reasons %}
+                            <div class="match-reason">✓ {{ reason }}</div>
+                        {% endfor %}
+
+                        <div class="skill-desc">{{ rec.description|default:"Essential industry and research skill." }}</div>
+
+                        <div class="skill-resources-note">
+                            📖 {{ rec.resources|length }} learning material{{ rec.resources|length|pluralize }} available
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No skill recommendations available yet.<br>Update your interests in your profile to generate recommendations!</p>
+                <a href="{% url 'edit_profile' %}" class="btn-primary">Add Interests</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Learning Resources & Course Links ── -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📚 Recommended Learning Resources &amp; Course Links</h2>
+            <span class="tag-type">{{ total_resources }} Total Materials</span>
+        </div>
+
+        <p class="card-subtext">
+            Curated tutorials, official docs, and courses mapped directly to your recommended skills:
+        </p>
+
+        {% if recommendations and recommendations.recommended_resources %}
+            <ul class="resource-list">
+                {% for res in recommendations.recommended_resources %}
+                    <li class="resource-item">
+                        <div class="resource-info">
+                            <div class="resource-title">{{ res.title }}</div>
+                            {% if res.description %}
+                                <div class="resource-desc">{{ res.description }}</div>
+                            {% endif %}
+                            <div class="resource-meta">
+                                <span class="tag" style="padding:2px 9px; font-size:.72rem;">{{ res.skill_name }}</span>
+                                <span class="tag-type">{{ res.platform }}</span>
+                                <span class="tag-type">{{ res.resource_type }}</span>
+                                <span class="tag-difficulty {% if res.difficulty == 'Beginner' %}difficulty-beginner{% elif res.difficulty == 'Intermediate' %}difficulty-intermediate{% else %}difficulty-advanced{% endif %}">
+                                    {{ res.difficulty }}
+                                </span>
+                                <!-- Status indicator if tracked -->
+                                {% for r_id, status in resource_status_map.items %}
+                                    {% if r_id == res.id %}
+                                        <span class="tag-status {% if status == 'completed' %}status-completed{% elif status == 'in_progress' %}status-in-progress{% else %}status-saved{% endif %}">
+                                            ● {{ status|title }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="resource-actions">
+                            <!-- Progress Tracking Form (unchanged) -->
+                            <form method="POST" action="{% url 'toggle_resource_progress' res.id %}" style="display:inline-flex; gap:5px;">
+                                {% csrf_token %}
+                                <button type="submit" name="status" value="in_progress" class="btn-action btn-action-primary" title="Start Learning">In Progress</button>
+                                <button type="submit" name="status" value="completed"   class="btn-action btn-action-complete" title="Mark as Completed">Complete</button>
+                                <button type="submit" name="status" value="saved"       class="btn-action"                     title="Save for Later">Save</button>
+                            </form>
+                            <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn-link">Open ↗</a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state">
+                <p>No learning resources found for the current criteria.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div><!-- /page-wrapper -->
+
+<script>
+    /* ── Floating particles ── */
+    (function () {
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 22; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 70 + 8;
+            p.style.cssText = `
+                width:${size}px; height:${size}px;
+                left:${Math.random() * 100}%;
+                animation-duration:${Math.random() * 22 + 14}s;
+                animation-delay:${Math.random() * -30}s;
+            `;
+            container.appendChild(p);
+        }
+    })();
+
+    /* ── Animate stat numbers counting up ── */
+    document.querySelectorAll('.stat-number').forEach(function (el) {
+        const target = parseInt(el.textContent, 10);
+        if (isNaN(target) || target === 0) return;
+        let current = 0;
+        const step  = Math.ceil(target / 30);
+        const timer = setInterval(function () {
+            current += step;
+            if (current >= target) { el.textContent = target; clearInterval(timer); }
+            else                   { el.textContent = current; }
+        }, 30);
+    });
+</script>
+</body>
+</html>
