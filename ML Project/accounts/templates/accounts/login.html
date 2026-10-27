@@ -1,19 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Login</title>
+    <title>Student Login — Student Learning System</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #fff;
+        }
+
+        /* ══════════════ LEFT PANEL ══════════════ */
+        .left-panel {
+            flex: 0 0 50%;
+            display: flex;
+            flex-direction: column;
+            padding: 32px;
+            background: #f5fafc;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+        }
+        .brand-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #1a3c5e;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .illustration-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0 0;
+        }
+        .illustration-wrap img {
+            width: 100%;
+            max-width: 620px;
+            max-height: calc(100vh - 112px);
+            height: auto;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 16px 40px rgba(35, 57, 68, 0.12);
+        }
+
+        /* ══════════════ RIGHT PANEL ══════════════ */
+        .right-panel {
+            flex: 0 0 50%;
+            max-width: none;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 52px clamp(36px, 8vw, 112px);
+            background: #ffffff;
+            overflow-y: auto;
+        }
+
+        .form-container { width: 100%; max-width: 432px; }
+
+        .form-title {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #2f3337;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .form-subtitle {
+            font-size: 0.875rem;
+            color: #565d62;
+            margin-bottom: 42px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        /* Messages */
+        .messages-block { margin-bottom: 16px; }
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeD 0.3s ease both;
+        }
+        .alert-error, .alert-warning {
+            background: #fff3f3; border: 1px solid #fca5a5; color: #dc2626;
+        }
+        .alert-success {
+            background: #f0fdf4; border: 1px solid #86efac; color: #16a34a;
+        }
+        .non-field-errors { list-style: none; margin-bottom: 16px; }
+        .non-field-errors li {
+            padding: 10px 14px; border-radius: 8px;
+            background: #fff3f3; border: 1px solid #fca5a5;
+            color: #dc2626; font-size: 0.84rem; margin-bottom: 6px;
+            animation: fadeD 0.3s ease both;
+        }
+        @keyframes fadeD {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form fields */
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block; font-size: 0.82rem; font-weight: 600;
+            color: #374151; margin-bottom: 7px;
+        }
+        .input-wrap { position: relative; display: flex; align-items: center; }
+        .input-wrap input[type="text"],
+        .input-wrap input[type="password"] {
+            width: 100%;
+            padding: 10px 44px 10px 14px;
+            border: 1.5px solid #d9dcde;
+            border-radius: 6px;
+            font-size: 0.93rem;
+            color: #303438;
+            background: #fff;
+            outline: none;
+            transition: border-color .22s, box-shadow .22s;
+            font-family: inherit;
+        }
+        .input-wrap input::placeholder { color: #aab4be; font-size: .88rem; }
+        .input-wrap input:focus {
+            border-color: #1a6fa0;
+            box-shadow: 0 0 0 3px rgba(26,111,160,.12);
+        }
+        .input-wrap input.is-error {
+            border-color: #f87171;
+            box-shadow: 0 0 0 3px rgba(248,113,113,.12);
+        }
+
+        .eye-btn {
+            position: absolute; right: 12px;
+            background: none; border: none; cursor: pointer;
+            color: #aab4be; display: flex; align-items: center;
+            padding: 4px; transition: color .2s; border-radius: 4px;
+        }
+        .eye-btn:hover { color: #1a6fa0; }
+
+        .errorlist { list-style: none; margin-top: 5px; padding: 0; }
+        .errorlist li {
+            font-size: .78rem; color: #dc2626; padding: 3px 8px;
+            background: #fff5f5; border-left: 2px solid #f87171;
+            border-radius: 4px; margin-top: 3px;
+        }
+
+        /* Row */
+        .form-row {
+            display: flex; align-items: center;
+            justify-content: space-between; margin-bottom: 24px;
+        }
+        .remember-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: .84rem; color: #374151; cursor: pointer; user-select: none;
+        }
+        .remember-label input[type="checkbox"] {
+            appearance: none; -webkit-appearance: none;
+            width: 17px; height: 17px; border: 1.5px solid #d1d9e0;
+            border-radius: 4px; background: #fff; cursor: pointer;
+            position: relative; transition: background .2s, border-color .2s;
+            flex-shrink: 0;
+        }
+        .remember-label input[type="checkbox"]:checked {
+            background: #1a6fa0; border-color: #1a6fa0;
+        }
+        .remember-label input[type="checkbox"]:checked::after {
+            content: ''; position: absolute; left: 4px; top: 1px;
+            width: 5px; height: 9px; border: 2px solid #fff;
+            border-top: none; border-left: none; transform: rotate(45deg);
+        }
+        .forgot-link {
+            font-size: .84rem; color: #1a6fa0; font-weight: 500;
+            text-decoration: none; border-bottom: 1px solid transparent;
+            transition: border-color .2s;
+        }
+        .forgot-link:hover { border-color: #1a6fa0; }
+
+        /* Button */
+        .btn-signin {
+            width: 100%; padding: 11px; border: none; border-radius: 6px;
+            background: #08718a; color: #fff; font-size: 1rem;
+            font-weight: 600; letter-spacing: .3px; cursor: pointer;
+            position: relative; overflow: hidden;
+            transition: background .22s, transform .15s, box-shadow .22s;
+            box-shadow: 0 4px 16px rgba(26,111,160,.28); font-family: inherit;
+        }
+        .btn-signin:hover {
+            background: #155f8c; transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(26,111,160,.38);
+        }
+        .btn-signin:active { transform: translateY(0); }
+        .btn-signin::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+            transform: translateX(-100%); transition: transform .5s ease;
+        }
+        .btn-signin:hover::after { transform: translateX(100%); }
+
+        .signup-row {
+            margin: 0 0 20px; text-align: left;
+            font-size: .875rem; color: #7a8fa6;
+        }
+        .signup-row a {
+            color: #1a6fa0; font-weight: 600; text-decoration: none;
+            border-bottom: 1px solid transparent; transition: border-color .2s;
+        }
+        .signup-row a:hover { border-color: #1a6fa0; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .left-panel  { display: none; }
+            .right-panel {
+                flex: 1 1 100%; max-width: 100%;
+                padding: 40px 24px; box-shadow: none;
+            }
+        }
+        @media (max-width: 480px) {
+            .right-panel { padding: 32px 20px; }
+            .form-title  { font-size: 1.35rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Student Login</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
+<!-- ═══════════ LEFT PANEL ═══════════ -->
+<div class="left-panel" aria-hidden="true">
 
-    <p>New student? <a href="{% url 'register' %}">Create an account</a></p>
+    <!-- Brand -->
+    <div class="brand">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect width="36" height="36" rx="8" fill="#d4e6f4"/>
+            <path d="M18 4L6 12v11l12 8 12-8V12L18 4z"
+                  stroke="#1a6fa0" stroke-width="2" stroke-linejoin="round" fill="none"/>
+            <path d="M18 4v27M6 12l12 8 12-8" stroke="#1a6fa0" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-name">SLS</span>
+    </div>
+
+    <div class="illustration-wrap">
+        <img src="{% static 'accounts/login-photo.jpg' %}"
+             alt="Students collaborating on laptops in a study space">
+    </div>
+</div>
+
+<!-- ═══════════ RIGHT PANEL ═══════════ -->
+<div class="right-panel">
+    <div class="form-container">
+
+        <h1 class="form-title">Welcome to SLS !!</h1>
+        <p class="form-subtitle">Student Learning System &mdash; Sign in to continue your learning journey</p>
+
+        {% if messages %}
+        <div class="messages-block" role="status">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    {% if message.tags == 'success' %}
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    {% else %}
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    {% endif %}
+                </svg>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <ul class="non-field-errors" role="alert">
+            {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="post" novalidate autocomplete="on">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                <div class="input-wrap">{{ form.username }}</div>
+                {% if form.username.errors %}
+                <ul class="errorlist">
+                    {% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                <div class="input-wrap">
+                    {{ form.password }}
+                    <button type="button" class="eye-btn" onclick="togglePwd()"
+                            aria-label="Toggle password visibility">
+                        <svg id="eye-show" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <svg id="eye-hide" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             style="display:none">
+                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                            <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
+                </div>
+                {% if form.password.errors %}
+                <ul class="errorlist">
+                    {% for e in form.password.errors %}<li>{{ e }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-row">
+                <label class="remember-label">
+                    <input type="checkbox" name="remember_me" id="remember_me">
+                    Keep me signed in
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <p class="signup-row">
+                First time here? <a href="{% url 'register' %}">Sign up</a> instead.
+            </p>
+
+            <button type="submit" class="btn-signin">Sign in</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function togglePwd() {
+        var f = document.getElementById('id_password');
+        var s = document.getElementById('eye-show');
+        var h = document.getElementById('eye-hide');
+        if (!f) return;
+        var show = f.type === 'password';
+        f.type = show ? 'text' : 'password';
+        s.style.display = show ? 'none' : '';
+        h.style.display = show ? '' : 'none';
+    }
+
+    (function () {
+        var un = document.getElementById('id_username');
+        var pw = document.getElementById('id_password');
+        if (un) {
+            un.setAttribute('placeholder', 'Enter your username');
+            un.setAttribute('autocomplete', 'username');
+            un.setAttribute('spellcheck', 'false');
+        }
+        if (pw) {
+            pw.setAttribute('placeholder', '••••••••••••');
+            pw.setAttribute('autocomplete', 'current-password');
+        }
+        [un, pw].forEach(function (el) {
+            if (el && el.closest('.form-group').querySelector('.errorlist'))
+                el.classList.add('is-error');
+        });
+    })();
+</script>
 </body>
 </html>
