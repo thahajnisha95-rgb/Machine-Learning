@@ -1,629 +1,387 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Learning Dashboard</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #f4f6fb;
-            margin: 0;
-            padding: 30px 15px;
-            color: #1f2937;
-        }
+{% extends "accounts/base_app.html" %}
 
-        .container {
-            max-width: 960px;
-            margin: auto;
-        }
+{% block title %}Student Learning Dashboard{% endblock %}
+{% block page_id %}dashboard{% endblock %}
 
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+{% block content %}
+    {% if total_resources %}
+        {% widthratio completed_count total_resources 100 as done_pct %}
+        {% widthratio in_progress_count total_resources 100 as progress_pct %}
+        {% widthratio saved_count total_resources 100 as saved_pct %}
+    {% else %}
+        {% widthratio 0 1 100 as done_pct %}
+        {% widthratio 0 1 100 as progress_pct %}
+        {% widthratio 0 1 100 as saved_pct %}
+    {% endif %}
 
-        h1 {
-            color: #4f46e5;
-            margin: 0 0 6px 0;
-            font-size: 26px;
-        }
-
-        .user-meta {
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        .nav-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .btn-logout {
-            background: #ffffff;
-            color: #ef4444;
-            border: 1px solid #fecaca;
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .btn-logout:hover {
-            background: #fee2e2;
-        }
-
-        .btn-api {
-            background: #ffffff;
-            color: #4f46e5;
-            border: 1px solid #c7d2fe;
-            padding: 8px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .btn-api:hover {
-            background: #eef2ff;
-        }
-
-        .messages {
-            margin-bottom: 20px;
-        }
-        .alert-success {
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .card {
-            background: white;
-            padding: 24px;
-            margin-bottom: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 12px;
-        }
-
-        .card-title {
-            margin: 0;
-            font-size: 20px;
-            color: #111827;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: #4f46e5;
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-        .btn-primary:hover {
-            background: #4338ca;
-        }
-
-        /* Tracker Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-        }
-
-        .stat-card {
-            background: #f9fafb;
-            border: 1px solid #f3f4f6;
-            border-radius: 10px;
-            padding: 16px;
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 28px;
-            font-weight: 700;
-            color: #4f46e5;
-            margin-bottom: 4px;
-        }
-        .stat-label {
-            font-size: 13px;
-            color: #6b7280;
-            font-weight: 500;
-        }
-
-        .profile-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .profile-item {
-            background: #f9fafb;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #f3f4f6;
-        }
-
-        .profile-label {
-            font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .profile-value {
-            font-size: 15px;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .tag {
-            display: inline-block;
-            background: #eef2ff;
-            color: #4338ca;
-            padding: 5px 12px;
-            border-radius: 20px;
-            margin: 4px 4px 4px 0;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .tag-category {
-            background: #ecfdf5;
-            color: #047857;
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .tag-difficulty {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .difficulty-beginner {
-            background: #e0f2fe;
-            color: #0369a1;
-        }
-        .difficulty-intermediate {
-            background: #fef3c7;
-            color: #b45309;
-        }
-        .difficulty-advanced {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .tag-type {
-            background: #f3f4f6;
-            color: #4b5563;
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 500;
-        }
-
-        .tag-status {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 700;
-        }
-        .status-completed {
-            background: #dcfce7;
-            color: #15803d;
-        }
-        .status-in-progress {
-            background: #fef9c3;
-            color: #a16207;
-        }
-        .status-saved {
-            background: #ede9fe;
-            color: #6d28d9;
-        }
-
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-        }
-
-        .skill-card {
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 16px;
-            background: #fafafa;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        .skill-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-            background: #ffffff;
-        }
-
-        .skill-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .skill-name {
-            font-size: 16px;
-            font-weight: 700;
-            color: #111827;
-            margin: 0;
-        }
-
-        .match-badge {
-            background: #4f46e5;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .match-reason {
-            font-size: 12px;
-            color: #4f46e5;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-
-        .skill-desc {
-            font-size: 13px;
-            color: #4b5563;
-            line-height: 1.4;
-            margin-bottom: 12px;
-        }
-
-        .resource-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .resource-item {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            background: #ffffff;
-            transition: border-color 0.2s;
-            flex-wrap: wrap;
-        }
-        .resource-item:hover {
-            border-color: #4f46e5;
-        }
-
-        .resource-info {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .resource-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 4px;
-        }
-
-        .resource-desc {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-
-        .resource-meta {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .resource-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .btn-action {
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #d1d5db;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-action:hover {
-            background: #e5e7eb;
-        }
-
-        .btn-action-primary {
-            background: #eef2ff;
-            color: #4338ca;
-            border-color: #c7d2fe;
-        }
-        .btn-action-primary:hover {
-            background: #e0e7ff;
-        }
-
-        .btn-action-complete {
-            background: #f0fdf4;
-            color: #15803d;
-            border-color: #bbf7d0;
-        }
-        .btn-action-complete:hover {
-            background: #dcfce7;
-        }
-
-        .btn-link {
-            background: #4f46e5;
-            color: white;
-            text-decoration: none;
-            padding: 7px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-            transition: background 0.2s;
-            display: inline-block;
-        }
-        .btn-link:hover {
-            background: #4338ca;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 24px;
-            color: #6b7280;
-        }
-
-        .empty-state p {
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header-bar">
-            <div>
-                <h1>Welcome to Your Learning Dashboard!</h1>
-                <div class="user-meta">Logged in as <strong>{{ request.user.username }}</strong></div>
-            </div>
-            <div class="nav-actions">
-                <a href="{% url 'api_recommendations' %}" target="_blank" class="btn-api">⚡ Recommendations API</a>
-                <a href="{% url 'logout' %}" class="btn-logout">Log out</a>
-            </div>
-        </div>
-
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert-success">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <!-- Tracker Overview -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">📈 My Learning Tracker</h2>
-                <span class="tag-type">Student Analytics</span>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">{{ completed_count }}</div>
-                    <div class="stat-label">Completed Courses</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{{ in_progress_count }}</div>
-                    <div class="stat-label">In Progress</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{{ saved_count }}</div>
-                    <div class="stat-label">Saved for Later</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{{ total_skills }}</div>
-                    <div class="stat-label">Available Skill Tracks</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 1: Student Profile -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">👤 Student Profile</h2>
-                <a href="{% url 'edit_profile' %}" class="btn-primary">
-                    {% if profile and profile.full_name %}Edit Profile{% else %}Complete Profile{% endif %}
-                </a>
-            </div>
-
-            {% if profile and profile.full_name %}
-                <div class="profile-grid">
-                    <div class="profile-item">
-                        <div class="profile-label">Full Name</div>
-                        <div class="profile-value">{{ profile.full_name }}</div>
+    <section id="overview" class="view" aria-labelledby="greeting-title">
+        <div class="dash-layout">
+            <div class="dash-main">
+                <div class="greeting">
+                    <div>
+                        <h1 id="greeting-title"><span id="greeting-hello">Welcome back</span>, {{ display_name }}</h1>
+                        <p>Recommendations are matched to your course, year, and interests.</p>
                     </div>
-                    <div class="profile-item">
-                        <div class="profile-label">Course / Degree</div>
-                        <div class="profile-value">{{ profile.course|default:"Not specified" }}</div>
-                    </div>
-                    <div class="profile-item">
-                        <div class="profile-label">Year of Study</div>
-                        <div class="profile-value">Year {{ profile.year_of_study }}</div>
-                    </div>
+                    <a class="btn btn-primary" href="{% url 'dashboard' %}#skill-recommendations">Explore Learning Paths</a>
                 </div>
 
-                <div>
-                    <div class="profile-label">Registered Interests</div>
-                    {% if profile.get_interests_list %}
+                <div class="kpi-grid">
+                    {% include "accounts/partials/kpi_card.html" with icon="i-check" value=completed_count label="Completed Courses" %}
+                    {% include "accounts/partials/kpi_card.html" with icon="i-play" value=in_progress_count label="In Progress" %}
+                    {% include "accounts/partials/kpi_card.html" with icon="i-bookmark" value=saved_count label="Saved for Later" %}
+                    {% include "accounts/partials/kpi_card.html" with icon="i-library" value=total_skills label="Available Skill Tracks" %}
+                </div>
+
+                <section class="panel" aria-labelledby="profile-title">
+                    <div class="panel-head">
                         <div>
-                            {% for interest in profile.get_interests_list %}
-                                <span class="tag">{{ interest }}</span>
+                            <h2 id="profile-title">Your skill profile</h2>
+                            <p class="support">Profile details and the skill matches used on this dashboard.</p>
+                        </div>
+                        <a class="link-all" href="{% url 'dashboard' %}#skill-recommendations">View all skills</a>
+                    </div>
+                    <div class="profile-split">
+                        <div class="ring" style="--pct: {{ done_pct }};" role="img" aria-label="{{ completed_count }} of {{ total_resources }} resources completed">
+                            <div>
+                                <strong>{{ completed_count }}/{{ total_resources }}</strong>
+                                <span>Completed</span>
+                            </div>
+                        </div>
+                        <div class="profile-columns">
+                            <div class="profile-skills">
+                                {% if recommendations and recommendations.recommended_skills %}
+                                    {% for rec in recommendations.recommended_skills|slice:":5" %}
+                                        <div class="bar-row">
+                                            <span class="bar-name">{{ rec.skill_name }}</span>
+                                            {% if rec.match_percentage > 0 %}
+                                                <span class="bar-value">{{ rec.match_percentage }}% match</span>
+                                                <div class="bar" aria-hidden="true"><span style="width: {{ rec.match_percentage }}%;"></span></div>
+                                            {% else %}
+                                                <span class="bar-value">{{ rec.category }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="empty">No skill matches yet. Add interests in your profile to generate them.</p>
+                                {% endif %}
+                            </div>
+                            <div class="profile-side">
+                                {% if profile and profile.full_name %}
+                                    <div class="profile-field">
+                                        <p class="profile-label">Full name</p>
+                                        <p class="profile-value">{{ profile.full_name }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <p class="profile-label">Course / degree</p>
+                                        <p class="profile-value">{{ profile.course|default:"Not specified" }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <p class="profile-label">Year of study</p>
+                                        <p class="profile-value">Year {{ profile.year_of_study }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <p class="profile-label">Interests</p>
+                                        {% if profile.get_interests_list %}
+                                            <div class="tags">
+                                                {% for interest in profile.get_interests_list %}
+                                                    <span class="tag">{{ interest }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <p class="profile-value">No specific interests added yet.</p>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <p class="empty">You haven't set up your student profile details yet.</p>
+                                {% endif %}
+                                <a href="{% url 'edit_profile' %}" class="btn btn-primary profile-edit">
+                                    {% if profile and profile.full_name %}Edit Profile{% else %}Complete Profile{% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel" aria-labelledby="path-title">
+                    <div class="panel-head">
+                        <div>
+                            <h2 id="path-title">Learning path</h2>
+                            <p class="support">The first recommended resources, with the status already saved on your account.</p>
+                        </div>
+                        <a class="link-all" href="{% url 'dashboard' %}#my-learning">View my learning</a>
+                    </div>
+                    {% if recommendations and recommendations.recommended_resources %}
+                        <div class="path-track">
+                            {% for res in recommendations.recommended_resources|slice:":4" %}
+                                <article class="path-step">
+                                    <span class="path-index" aria-hidden="true">{{ forloop.counter }}</span>
+                                    <h3>{{ res.title }}</h3>
+                                    <p>{{ res.skill_name }} · {{ res.difficulty }}</p>
+                                    {% if res.id in resource_status_map %}
+                                        {% for r_id, status in resource_status_map.items %}
+                                            {% if r_id == res.id %}
+                                                <span class="status status-{{ status }}">
+                                                    {% if status == "completed" %}Completed{% elif status == "in_progress" %}In Progress{% elif status == "saved" %}Saved{% else %}{{ status }}{% endif %}
+                                                </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="status">Not started</span>
+                                    {% endif %}
+                                </article>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p style="color: #9ca3af; font-size: 14px; margin: 6px 0;">No specific interests added yet. Click 'Edit Profile' to add your interests!</p>
+                        <p class="empty">No learning path yet. Update your interests to generate resources.</p>
                     {% endif %}
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <p>You haven't set up your student profile details yet.</p>
-                    <a href="{% url 'edit_profile' %}" class="btn-primary">Set Up Profile Now</a>
-                </div>
-            {% endif %}
-        </div>
+                </section>
 
-        <!-- Card 2: AI Skill Recommendations -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">🤖 AI Skill Recommendations</h2>
-                <span class="tag-type">{{ recommendations.engine_version|default:"ML TF-IDF Model" }}</span>
+                <section class="panel" aria-labelledby="preview-title">
+                    <div class="panel-head">
+                        <div>
+                            <h2 id="preview-title">Recommended learning resources</h2>
+                            <p class="support">Open a resource here, or use Learning Resources to save, start, or complete it.</p>
+                        </div>
+                        <a class="link-all" href="{% url 'dashboard' %}#learning-resources">View all</a>
+                    </div>
+                    {% if recommendations and recommendations.recommended_resources %}
+                        <ul class="preview-list">
+                            {% for res in recommendations.recommended_resources|slice:":3" %}
+                                <li class="preview-row">
+                                    <div>
+                                        <div class="resource-title">{{ res.title }}</div>
+                                        {% if res.description %}<p class="resource-desc">{{ res.description }}</p>{% endif %}
+                                        <div class="resource-meta">
+                                            <span class="tag">{{ res.skill_name }}</span>
+                                            <span class="meta-pill">{{ res.platform }}</span>
+                                            <span class="diff diff-{{ res.difficulty|slugify }}">{{ res.difficulty }}</span>
+                                        </div>
+                                    </div>
+                                    <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn-link">Open <svg class="icon" aria-hidden="true"><use href="#i-external"></use></svg></a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="empty">No learning resources found for the current criteria.</p>
+                    {% endif %}
+                </section>
             </div>
 
-            <p style="color: #6b7280; font-size: 14px; margin-top: 0; margin-bottom: 16px;">
-                Personalized skill match powered by TF-IDF Vectorization, Cosine Similarity, and academic year alignment:
-            </p>
+            <aside class="dash-side" aria-label="Dashboard summary">
+                <section class="engine-card">
+                    <h2>Recommendations for your goals</h2>
+                    <p>{{ recommendations.engine_version|default:"ML TF-IDF Model" }}. Skill matches use your profile, TF-IDF similarity, and year of study.</p>
+                    <a href="{% url 'dashboard' %}#skill-recommendations">View skill matches</a>
+                </section>
 
-            {% if recommendations and recommendations.recommended_skills %}
-                <div class="skills-grid">
-                    {% for rec in recommendations.recommended_skills %}
-                        <div class="skill-card">
-                            <div class="skill-header">
-                                <h3 class="skill-name">{{ rec.skill_name }}</h3>
-                                {% if rec.match_percentage > 0 %}
-                                    <span class="match-badge">{{ rec.match_percentage }}% Match</span>
-                                {% endif %}
-                            </div>
-
-                            {% if rec.category %}
-                                <div style="margin-bottom: 6px;">
-                                    <span class="tag-category">{{ rec.category }}</span>
-                                </div>
-                            {% endif %}
-
-                            {% for reason in rec.match_reasons %}
-                                <div class="match-reason">✓ {{ reason }}</div>
+                <section class="panel" aria-labelledby="side-skills-title">
+                    <div class="panel-head">
+                        <h2 id="side-skills-title">Recommended skills</h2>
+                        <a class="link-all" href="{% url 'dashboard' %}#skill-recommendations">View all</a>
+                    </div>
+                    {% if recommendations and recommendations.recommended_skills %}
+                        <div class="side-skills">
+                            {% for rec in recommendations.recommended_skills|slice:":4" %}
+                                {% include "accounts/partials/skill_card.html" with id_prefix="side" return_view="overview" %}
                             {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty">No skill recommendations available yet. <a href="{% url 'edit_profile' %}">Add interests</a></p>
+                    {% endif %}
+                </section>
 
-                            <div class="skill-desc">{{ rec.description|default:"Essential industry and research skill." }}</div>
+                <section class="panel" aria-labelledby="side-progress-title">
+                    <div class="panel-head">
+                        <h2 id="side-progress-title">Your progress</h2>
+                        <a class="link-all" href="{% url 'dashboard' %}#learning-progress">View details</a>
+                    </div>
+                    <div class="meter-row">
+                        <div class="meter-label"><span>Completed</span><span>{{ completed_count }}</span></div>
+                        <div class="bar" aria-hidden="true"><span style="width: {{ done_pct }}%;"></span></div>
+                    </div>
+                    <div class="meter-row">
+                        <div class="meter-label"><span>In progress</span><span>{{ in_progress_count }}</span></div>
+                        <div class="bar" aria-hidden="true"><span class="bar-warn" style="width: {{ progress_pct }}%;"></span></div>
+                    </div>
+                    <div class="meter-row">
+                        <div class="meter-label"><span>Saved</span><span>{{ saved_count }}</span></div>
+                        <div class="bar" aria-hidden="true"><span class="bar-saved" style="width: {{ saved_pct }}%;"></span></div>
+                    </div>
+                    <p class="support">Counts are out of {{ total_resources }} active learning material{{ total_resources|pluralize }}.</p>
+                </section>
 
-                            <div style="font-size: 12px; color: #6b7280; font-weight: 500;">
-                                📖 {{ rec.resources|length }} learning material{{ rec.resources|length|pluralize }} available
+                <section class="panel" aria-labelledby="quick-title">
+                    <h2 id="quick-title">Quick actions</h2>
+                    <div class="quick-grid">
+                        <a href="{% url 'dashboard' %}#learning-resources">
+                            <svg class="icon" aria-hidden="true"><use href="#i-library"></use></svg>
+                            Learning resources
+                        </a>
+                        <a href="{% url 'dashboard' %}#my-learning">
+                            <svg class="icon" aria-hidden="true"><use href="#i-book"></use></svg>
+                            My learning
+                        </a>
+                        <a href="{% url 'edit_profile' %}">
+                            <svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg>
+                            Update profile
+                        </a>
+                        <a href="{% url 'api_recommendations' %}" target="_blank" rel="noopener noreferrer">
+                            <svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg>
+                            Recommendations API
+                        </a>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </section>
+
+    <section id="my-learning" class="view panel" aria-labelledby="my-learning-title">
+        <div class="panel-head">
+            <div>
+                <h1 id="my-learning-title">My Learning</h1>
+                <p class="support">Resources you have saved, started, or completed.</p>
+            </div>
+        </div>
+        {% if progress_records %}
+            <ul class="tracked-list">
+                {% for item in progress_records %}
+                    <li class="tracked-item">
+                        <div>
+                            <div class="tracked-title">{{ item.resource.title }}</div>
+                            <div class="tracked-sub">
+                                {{ item.resource.skill.name }}
+                                · {{ item.get_status_display }}
+                                {% if item.rating %} · Rated {{ item.rating }}/5{% endif %}
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <p>No skill recommendations available yet. Update your interests in your profile to generate recommendations!</p>
-                    <a href="{% url 'edit_profile' %}" class="btn-primary">Add Interests</a>
-                </div>
-            {% endif %}
-        </div>
+                        <a href="{{ item.resource.url }}" target="_blank" rel="noopener noreferrer">Open</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">You have not saved, started, or completed a resource yet. <a href="{% url 'dashboard' %}#learning-resources">Browse learning resources</a></p>
+        {% endif %}
+    </section>
 
-        <!-- Card 3: Learning Resources & Course Links -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">📚 Recommended Learning Resources & Course Links</h2>
-                <span class="tag-type">{{ total_resources }} Total Materials</span>
+    <section id="skill-recommendations" class="view panel" aria-labelledby="skills-title">
+        <div class="panel-head">
+            <div>
+                <h1 id="skills-title">AI Skill Recommendations</h1>
+                <p class="support">{{ recommendations.engine_version|default:"ML TF-IDF Model" }}. Personalized skill match powered by TF-IDF vectorization, cosine similarity, and academic year alignment.</p>
             </div>
+        </div>
+        {% if recommendations and recommendations.recommended_skills %}
+            <div class="skills-grid">
+                {% for rec in recommendations.recommended_skills %}
+                    {% include "accounts/partials/skill_card.html" with id_prefix="page" return_view="skill-recommendations" %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">
+                <p>No skill recommendations available yet. Update your interests in your profile to generate recommendations.</p>
+                <a href="{% url 'edit_profile' %}">Add Interests</a>
+            </div>
+        {% endif %}
+    </section>
 
-            <p style="color: #6b7280; font-size: 14px; margin-top: 0; margin-bottom: 16px;">
-                Curated tutorials, official docs, and courses mapped directly to your recommended skills:
-            </p>
+    <section id="learning-resources" class="view panel" aria-labelledby="resources-title">
+        <div class="panel-head">
+            <div>
+                <h1 id="resources-title">Recommended Learning Resources</h1>
+                <p class="support">Curated tutorials, official docs, and courses mapped to your recommended skills. {{ total_resources }} total materials.</p>
+            </div>
+        </div>
+        {% if recommendations and recommendations.recommended_resources %}
+            <div class="toolbar">
+                <p id="resource-count" class="toolbar-count"></p>
+                <div class="filter">
+                    <label for="filter-category">Category</label>
+                    <select id="filter-category">
+                        <option value="">All categories</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <label for="filter-difficulty">Difficulty</label>
+                    <select id="filter-difficulty">
+                        <option value="">All levels</option>
+                    </select>
+                </div>
+            </div>
+            <ul id="resource-list" class="resource-list">
+                {% for res in recommendations.recommended_resources %}
+                    {% include "accounts/partials/resource_row.html" %}
+                {% endfor %}
+            </ul>
+            <p id="filter-empty" class="empty" hidden>No learning resources match these filters.</p>
+        {% else %}
+            <p class="empty">No learning resources found for the current criteria.</p>
+        {% endif %}
+    </section>
 
-            {% if recommendations and recommendations.recommended_resources %}
-                <ul class="resource-list">
-                    {% for res in recommendations.recommended_resources %}
-                        <li class="resource-item">
-                            <div class="resource-info">
-                                <div class="resource-title">{{ res.title }}</div>
-                                {% if res.description %}
-                                    <div class="resource-desc">{{ res.description }}</div>
-                                {% endif %}
-                                <div class="resource-meta">
-                                    <span class="tag" style="padding: 2px 8px; font-size: 11px;">{{ res.skill_name }}</span>
-                                    <span class="tag-type">{{ res.platform }}</span>
-                                    <span class="tag-type">{{ res.resource_type }}</span>
-                                    <span class="tag-difficulty {% if res.difficulty == 'Beginner' %}difficulty-beginner{% elif res.difficulty == 'Intermediate' %}difficulty-intermediate{% else %}difficulty-advanced{% endif %}">
-                                        {{ res.difficulty }}
-                                    </span>
-
-                                    <!-- Status indicator if tracked -->
-                                    {% for r_id, status in resource_status_map.items %}
-                                        {% if r_id == res.id %}
-                                            <span class="tag-status {% if status == 'completed' %}status-completed{% elif status == 'in_progress' %}status-in-progress{% else %}status-saved{% endif %}">
-                                                ● {{ status|title }}
-                                            </span>
-                                        {% endif %}
-                                    {% endfor %}
+    <section id="learning-progress" class="view panel" aria-labelledby="progress-title">
+        <div class="panel-head">
+            <div>
+                <h1 id="progress-title">Learning Progress</h1>
+                <p class="support">Completed, in-progress, and saved resources from your tracker.</p>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            {% include "accounts/partials/kpi_card.html" with icon="i-check" value=completed_count label="Completed Courses" %}
+            {% include "accounts/partials/kpi_card.html" with icon="i-play" value=in_progress_count label="In Progress" %}
+            {% include "accounts/partials/kpi_card.html" with icon="i-bookmark" value=saved_count label="Saved for Later" %}
+            {% include "accounts/partials/kpi_card.html" with icon="i-library" value=total_skills label="Available Skill Tracks" %}
+        </div>
+        {% if progress_records %}
+            {% if completed_count %}
+                <h2 class="group-title">Completed</h2>
+                <ul class="tracked-list">
+                    {% for item in progress_records %}
+                        {% if item.status == "completed" %}
+                            <li class="tracked-item">
+                                <div>
+                                    <div class="tracked-title">{{ item.resource.title }}</div>
+                                    <div class="tracked-sub">{{ item.resource.skill.name }}{% if item.rating %} · Rated {{ item.rating }}/5{% endif %}</div>
                                 </div>
-                            </div>
-                            <div class="resource-actions">
-                                <!-- Progress Tracking Form -->
-                                <form method="POST" action="{% url 'toggle_resource_progress' res.id %}" style="display: inline-flex; gap: 4px;">
-                                    {% csrf_token %}
-                                    <button type="submit" name="status" value="in_progress" class="btn-action btn-action-primary" title="Start Learning">In Progress</button>
-                                    <button type="submit" name="status" value="completed" class="btn-action btn-action-complete" title="Mark as Completed">Complete</button>
-                                    <button type="submit" name="status" value="saved" class="btn-action" title="Save for Later">Save</button>
-                                </form>
-                                <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn-link">Open ↗</a>
-                            </div>
-                        </li>
+                                <a href="{{ item.resource.url }}" target="_blank" rel="noopener noreferrer">Open</a>
+                            </li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
-            {% else %}
-                <div class="empty-state">
-                    <p>No learning resources found for the current criteria.</p>
-                </div>
             {% endif %}
-        </div>
-    </div>
-</body>
-</html>
+            {% if in_progress_count %}
+                <h2 class="group-title">In progress</h2>
+                <ul class="tracked-list">
+                    {% for item in progress_records %}
+                        {% if item.status == "in_progress" %}
+                            <li class="tracked-item">
+                                <div>
+                                    <div class="tracked-title">{{ item.resource.title }}</div>
+                                    <div class="tracked-sub">{{ item.resource.skill.name }}</div>
+                                </div>
+                                <a href="{{ item.resource.url }}" target="_blank" rel="noopener noreferrer">Open</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if saved_count %}
+                <h2 class="group-title">Saved for later</h2>
+                <ul class="tracked-list">
+                    {% for item in progress_records %}
+                        {% if item.status == "saved" %}
+                            <li class="tracked-item">
+                                <div>
+                                    <div class="tracked-title">{{ item.resource.title }}</div>
+                                    <div class="tracked-sub">{{ item.resource.skill.name }}</div>
+                                </div>
+                                <a href="{{ item.resource.url }}" target="_blank" rel="noopener noreferrer">Open</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% else %}
+            <p class="empty">Nothing is tracked yet. <a href="{% url 'dashboard' %}#learning-resources">Browse learning resources</a></p>
+        {% endif %}
+    </section>
+{% endblock %}

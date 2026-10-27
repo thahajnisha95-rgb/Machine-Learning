@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -164,7 +165,21 @@ def toggle_resource_progress(request, resource_id):
         })
 
     messages.success(request, msg)
-    return redirect("dashboard")
+    allowed_views = {
+        "overview",
+        "my-learning",
+        "skill-recommendations",
+        "learning-resources",
+        "learning-progress",
+    }
+    next_view = request.POST.get("next", "")
+    open_skill = request.POST.get("open_skill", "")
+    target = reverse("dashboard")
+    if open_skill.isdigit():
+        target = f"{target}?skill={open_skill}"
+    if next_view in allowed_views:
+        target = f"{target}#{next_view}"
+    return redirect(target)
 
 
 # ==========================================

@@ -1,0 +1,45 @@
+<header class="topnav">
+    <button type="button" id="sidebar-open" class="icon-btn sidebar-open" aria-controls="app-sidebar" aria-expanded="false" aria-label="Open menu">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg>
+    </button>
+
+    <div class="page-heading">
+        <nav class="crumb" aria-label="Breadcrumb">
+            <ol>
+                <li><a href="{% url 'dashboard' %}">LearnPath</a></li>
+                <li id="crumb-current" aria-current="page">{{ crumb|default:"Dashboard" }}</li>
+            </ol>
+        </nav>
+        <p id="page-title" class="page-title">{{ page_title|default:"Dashboard" }}</p>
+    </div>
+
+    <form id="resource-search-form" class="search" action="{% url 'dashboard' %}" method="get" role="search">
+        <label class="sr-only" for="global-search">Search learning resources</label>
+        <svg class="icon search-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+        <input id="global-search" name="q" type="search" placeholder="Search skills, courses, or resources" value="{{ request.GET.q }}" aria-keyshortcuts="/" autocomplete="off">
+        <kbd aria-hidden="true">/</kbd>
+    </form>
+
+    <div class="topnav-actions">
+        <a class="btn btn-ghost btn-api" href="{% url 'api_recommendations' %}" target="_blank" rel="noopener noreferrer">
+            <span class="api-full">Recommendations API</span>
+            <span class="api-short">API</span>
+        </a>
+        <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false" aria-label="Switch to dark theme">
+            <svg class="icon icon-moon" aria-hidden="true"><use href="#i-moon"></use></svg>
+            <svg class="icon icon-sun" aria-hidden="true"><use href="#i-sun"></use></svg>
+        </button>
+        <details id="account-menu" class="account-menu">
+            <summary aria-label="Account menu for {{ display_name }}">
+                <span class="avatar" aria-hidden="true">{{ display_name|slice:":1"|upper }}</span>
+                <span class="account-name">{{ display_name }}</span>
+                <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
+            </summary>
+            <div class="account-panel">
+                <p class="account-id">{{ request.user.username }}</p>
+                <a href="{% url 'edit_profile' %}"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg> Profile</a>
+                <a href="{% url 'logout' %}"><svg class="icon" aria-hidden="true"><use href="#i-logout"></use></svg> Log out</a>
+            </div>
+        </details>
+    </div>
+</header>

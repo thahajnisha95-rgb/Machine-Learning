@@ -1,0 +1,68 @@
+{% load static %}
+{% firstof profile.full_name request.user.username as display_name %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LearnPath{% endblock %}</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("learnpath-theme");
+                if (theme === "dark" || theme === "light") {
+                    document.documentElement.setAttribute("data-theme", theme);
+                }
+                if (localStorage.getItem("learnpath-sidebar") === "collapsed") {
+                    document.documentElement.classList.add("sidebar-collapsed");
+                }
+                var view = "overview";
+                if (location.pathname.indexOf("/profile/") !== -1) {
+                    view = "profile";
+                } else {
+                    var allowed = ["overview", "my-learning", "skill-recommendations", "learning-resources", "learning-progress"];
+                    var hash = (location.hash || "").replace(/^#/, "");
+                    if (allowed.indexOf(hash) !== -1) view = hash;
+                    var query = new URLSearchParams(location.search).get("q");
+                    if (query) view = "learning-resources";
+                }
+                document.documentElement.setAttribute("data-view", view);
+            } catch (err) {}
+        })();
+    </script>
+    <link rel="stylesheet" href="{% static 'accounts/app.css' %}">
+</head>
+<body data-page="{% block page_id %}dashboard{% endblock %}">
+    <a class="skip-link" href="#app-content">Skip to content</a>
+    {% include "accounts/partials/icons.html" %}
+    <div class="app-shell">
+        {% include "accounts/partials/sidebar.html" %}
+        <div class="main-column">
+            {% block top_heading %}
+                {% include "accounts/partials/topnav.html" with crumb="Dashboard" page_title="Dashboard" %}
+            {% endblock %}
+            <main id="app-content" class="content" tabindex="-1">
+                <div class="page">
+                    {% if messages %}
+                        <div class="messages" role="status">
+                            {% for message in messages %}
+                                <div class="alert">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+    <noscript>
+        <style>
+            html, body { overflow: auto; height: auto; }
+            .app-shell, .main-column, .content { height: auto; overflow: visible; }
+            .sidebar { position: sticky; top: 0; }
+            .view { display: block !important; }
+        </style>
+    </noscript>
+    <script src="{% static 'accounts/app.js' %}"></script>
+</body>
+</html>
