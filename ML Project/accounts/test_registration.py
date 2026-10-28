@@ -46,15 +46,16 @@ class StudentRegistrationFormTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("password1", form.errors)
 
-    def test_registration_page_renders_matching_auth_layout(self):
+    def test_registration_page_renders_without_an_illustration(self):
         response = self.client.get(reverse("register"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'class="left-panel"')
         self.assertContains(response, 'class="right-panel"')
-        self.assertContains(response, 'class="illustration-wrap"')
         self.assertContains(response, 'class="btn-register"')
         self.assertContains(response, "10 letters or numbers")
+        self.assertNotContains(response, "illustration-wrap")
+        self.assertNotContains(response, "login-photo.jpg")
+        self.assertNotContains(response, "<img")
 
     def test_registration_creates_user_and_student_profile(self):
         response = self.client.post(reverse("register"), data={
@@ -67,3 +68,39 @@ class StudentRegistrationFormTests(TestCase):
         user = User.objects.get(username="student123")
         self.assertTrue(user.check_password("N7vQp4x!"))
         self.assertTrue(hasattr(user, "studentprofile"))
+
+    def test_authenticated_user_is_redirected_away_from_registration(self):
+        user = User.objects.create_user(username="student123", password="N7vQp4x!")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("register"))
+
+        self.assertRedirects(response, reverse("dashboard"))
+
+    def test_logout_redirects_to_registration_page(self):
+        user = User.objects.create_user(username="student123", password="N7vQp4x!")
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("logout"), follow=True)
+
+        self.assertRedirects(response, reverse("register"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "Create your account")
+
+    def test_login_page_matches_image_free_dashboard_theme(self):
+        response = self.client.get(reverse("login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="auth-card"')
+        self.assertContains(response, "background: #f5f6f8")
+        self.assertContains(response, "background: #4f46e5")
+        self.assertNotContains(response, "login-photo.jpg")
+        self.assertNotContains(response, "<img")
+
+    def test_authenticated_user_is_redirected_away_from_login(self):
+        user = User.objects.create_user(username="student123", password="N7vQp4x!")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("login"))
+
+        self.assertRedirects(response, reverse("dashboard"))

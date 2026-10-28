@@ -14,6 +14,9 @@ from student_learning_system import get_recommendations_for_student
 
 def register(request):
     """Register a new student account and automatically provision a student profile."""
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
     if request.method == "POST":
         form = StudentRegistrationForm(request.POST)
         if form.is_valid():

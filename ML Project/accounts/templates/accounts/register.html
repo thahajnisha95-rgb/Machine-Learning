@@ -1,4 +1,3 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,67 +9,32 @@
 
         body {
             min-height: 100vh;
-            display: flex;
+            display: grid;
+            place-items: center;
+            padding: 24px;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #fff;
-        }
-
-        .left-panel {
-            flex: 0 0 50%;
-            display: flex;
-            flex-direction: column;
-            padding: 32px;
-            background: #f5fafc;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
-        .brand-name {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #1a3c5e;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-        .illustration-wrap {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 0 0;
-        }
-        .illustration-wrap img {
-            width: 100%;
-            max-width: 620px;
-            max-height: calc(100vh - 112px);
-            height: auto;
-            object-fit: cover;
-            border-radius: 6px;
-            box-shadow: 0 16px 40px rgba(35, 57, 68, 0.12);
+            background: #f5f6f8;
         }
 
         .right-panel {
-            flex: 0 0 50%;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 42px clamp(36px, 8vw, 112px);
+            width: min(100%, 500px);
+            padding: 40px clamp(24px, 7vw, 56px);
             background: #fff;
-            overflow-y: auto;
+            border: 1px solid #e6e8ee;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
         }
         .form-container { width: 100%; max-width: 432px; }
         .form-title {
             font-size: 1.65rem;
             font-weight: 700;
-            color: #2f3337;
+            color: #0f172a;
             margin-bottom: 8px;
             text-align: center;
         }
         .form-subtitle {
             font-size: .875rem;
-            color: #565d62;
+            color: #64748b;
             margin-bottom: 28px;
             line-height: 1.5;
             text-align: center;
@@ -113,20 +77,20 @@
             border: 1.5px solid #d9dcde;
             border-radius: 6px;
             font-size: .93rem;
-            color: #303438;
+            color: #0f172a;
             background: #fff;
             outline: none;
             transition: border-color .22s, box-shadow .22s;
             font-family: inherit;
         }
-        .auth-input::placeholder { color: #aab4be; font-size: .88rem; }
+        .auth-input::placeholder { color: #94a3b8; font-size: .88rem; }
         .auth-input:focus {
-            border-color: #1a6fa0;
-            box-shadow: 0 0 0 3px rgba(26,111,160,.12);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
         }
         .help-text {
             margin-top: 6px;
-            color: #7a8fa6;
+            color: #64748b;
             font-size: .78rem;
             line-height: 1.45;
         }
@@ -137,43 +101,37 @@
             padding: 11px;
             border: none;
             border-radius: 6px;
-            background: #08718a;
+            background: #4f46e5;
             color: #fff;
             font-size: 1rem;
             font-weight: 600;
             letter-spacing: .3px;
             cursor: pointer;
             transition: background .22s, transform .15s, box-shadow .22s;
-            box-shadow: 0 4px 16px rgba(26,111,160,.28);
+            box-shadow: 0 4px 14px rgba(79,70,229,.22);
             font-family: inherit;
         }
         .btn-register:hover {
-            background: #155f8c;
+            background: #4338ca;
             transform: translateY(-1px);
-            box-shadow: 0 6px 22px rgba(26,111,160,.38);
+            box-shadow: 0 6px 20px rgba(79,70,229,.3);
         }
         .signin-row {
             margin-top: 20px;
             text-align: center;
             font-size: .875rem;
-            color: #7a8fa6;
+            color: #64748b;
         }
         .signin-row a {
-            color: #1a6fa0;
+            color: #4f46e5;
             font-weight: 600;
             text-decoration: none;
             border-bottom: 1px solid transparent;
         }
-        .signin-row a:hover { border-color: #1a6fa0; }
+        .signin-row a:hover { color: #4338ca; }
 
-        @media (max-width: 900px) {
-            .left-panel { display: none; }
-            .right-panel {
-                flex: 1 1 100%;
-                padding: 40px 24px;
-            }
-        }
         @media (max-width: 480px) {
+            body { padding: 12px; }
             .right-panel { padding: 32px 20px; }
             .form-title { font-size: 1.35rem; }
         }
@@ -183,22 +141,6 @@
     </style>
 </head>
 <body>
-    <div class="left-panel" aria-hidden="true">
-        <div class="brand">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                <rect width="36" height="36" rx="8" fill="#d4e6f4"/>
-                <path d="M18 4L6 12v11l12 8 12-8V12L18 4z"
-                      stroke="#1a6fa0" stroke-width="2" stroke-linejoin="round" fill="none"/>
-                <path d="M18 4v27M6 12l12 8 12-8" stroke="#1a6fa0" stroke-width="2" stroke-linejoin="round"/>
-            </svg>
-            <span class="brand-name">SLS</span>
-        </div>
-        <div class="illustration-wrap">
-            <img src="{% static 'accounts/login-photo.jpg' %}?v=20261028"
-                 alt="A student studying with a laptop in a university library">
-        </div>
-    </div>
-
     <main class="right-panel">
         <div class="form-container">
             <h1 class="form-title">Create your account</h1>
