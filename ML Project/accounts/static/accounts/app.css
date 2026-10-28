@@ -242,11 +242,13 @@ body {
     height: 40px;
     justify-content: flex-start;
     padding: 0 10px;
-    margin-top: 2px;
+    flex: 0 0 40px;
     color: #b7b6cf;
 }
 
 .sidebar .sidebar-collapse:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.sidebar-collapse .icon { transition: transform 0.2s ease; }
+html.sidebar-collapsed .sidebar-collapse .icon { transform: rotate(180deg); }
 
 .sidebar .nav-link.is-active,
 html[data-view="overview"] .sidebar .nav-link[data-nav="overview"],
