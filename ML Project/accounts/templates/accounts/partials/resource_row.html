@@ -2,8 +2,8 @@
 <li class="resource-row"
     data-difficulty="{{ res.difficulty }}"
     data-skill="{{ row_skill }}"
-    data-category="{% for skill in recommendations.recommended_skills %}{% if skill.skill_name == row_skill %}{{ skill.category }}{% endif %}{% endfor %}"
-    data-search="{{ res.title }} {{ res.description }} {{ row_skill }} {{ res.platform }} {{ res.resource_type }} {{ res.difficulty }} {% for skill in recommendations.recommended_skills %}{% if skill.skill_name == row_skill %}{{ skill.category }}{% endif %}{% endfor %}">
+    data-category="{% firstof res.category res.skill.category %}"
+    data-search="{{ res.title }} {{ res.description }} {{ row_skill }} {{ res.platform }} {{ res.resource_type }} {{ res.difficulty }} {% firstof res.category res.skill.category %}">
     <div class="resource-info">
         <div class="resource-title">{{ res.title }}</div>
         {% if res.description %}

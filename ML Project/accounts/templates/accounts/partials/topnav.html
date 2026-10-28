@@ -10,7 +10,6 @@
                 <li id="crumb-current" aria-current="page">{{ crumb|default:"Dashboard" }}</li>
             </ol>
         </nav>
-        <p id="page-title" class="page-title">{{ page_title|default:"Dashboard" }}</p>
     </div>
 
     <form id="resource-search-form" class="search" action="{% url 'dashboard' %}" method="get" role="search">

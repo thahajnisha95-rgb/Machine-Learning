@@ -287,11 +287,11 @@
     <section id="learning-resources" class="view panel" aria-labelledby="resources-title">
         <div class="panel-head">
             <div>
-                <h1 id="resources-title">Recommended Learning Resources</h1>
-                <p class="support">Curated tutorials, official docs, and courses mapped to your recommended skills. {{ total_resources }} total materials.</p>
+                <h1 id="resources-title">All Learning Resources</h1>
+                <p class="support">Browse all available courses, tutorials, and documentation across every skill. {{ total_resources }} total materials.</p>
             </div>
         </div>
-        {% if recommendations and recommendations.recommended_resources %}
+        {% if learning_resources %}
             <div class="toolbar">
                 <p id="resource-count" class="toolbar-count"></p>
                 <div class="filter">
@@ -308,13 +308,13 @@
                 </div>
             </div>
             <ul id="resource-list" class="resource-list">
-                {% for res in recommendations.recommended_resources %}
+                {% for res in learning_resources %}
                     {% include "accounts/partials/resource_row.html" %}
                 {% endfor %}
             </ul>
             <p id="filter-empty" class="empty" hidden>No learning resources match these filters.</p>
         {% else %}
-            <p class="empty">No learning resources found for the current criteria.</p>
+            <p class="empty">No learning resources are available yet.</p>
         {% endif %}
     </section>
 
