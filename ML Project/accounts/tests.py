@@ -44,6 +44,48 @@ class AccessPermissionTests(TestCase):
         self.assertContains(response, "Student One")
         self.assertContains(response, "Computer Science")
 
+    def test_dashboard_lists_all_active_resources_and_only_breadcrumb_heading(self):
+        python = Skill.objects.create(
+            name="Python Programming",
+            category="Programming Languages",
+            keywords="python",
+        )
+        machine_learning = Skill.objects.create(
+            name="Machine Learning",
+            category="Artificial Intelligence",
+            keywords="machine learning",
+        )
+        LearningResource.objects.create(
+            skill=python,
+            title="Python Course",
+            url="https://example.com/python",
+        )
+        LearningResource.objects.create(
+            skill=machine_learning,
+            title="Machine Learning Course",
+            url="https://example.com/ml",
+        )
+        LearningResource.objects.create(
+            skill=machine_learning,
+            title="Inactive Course",
+            url="https://example.com/inactive",
+            is_active=False,
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["learning_resources"]), 2)
+        self.assertContains(response, "Python Course")
+        self.assertContains(response, "Machine Learning Course")
+        self.assertContains(response, 'data-category="Artificial Intelligence"')
+        self.assertNotContains(response, "Inactive Course")
+        self.assertContains(response, '<li id="crumb-current" aria-current="page">Dashboard</li>')
+        self.assertNotContains(response, 'id="page-title"')
+        self.assertContains(response, 'id="sidebar-collapse"')
+        self.assertNotContains(response, '<span class="nav-label">Collapse sidebar</span>')
+
     def test_authenticated_edit_profile_access(self):
         self.client.login(username="student1", password="password123")
         response = self.client.get(reverse("edit_profile"))

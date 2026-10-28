@@ -396,6 +396,7 @@ class MLSkillRecommender:
                 {
                     "id": r.id,
                     "title": r.title,
+                    "category": skill.category,
                     "description": r.description,
                     "resource_type": r.get_resource_type_display(),
                     "url": r.url,

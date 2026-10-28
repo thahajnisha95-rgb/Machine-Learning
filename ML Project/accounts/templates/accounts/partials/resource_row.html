@@ -1,0 +1,37 @@
+{% firstof res.skill_name skill_label as row_skill %}
+<li class="resource-row"
+    data-difficulty="{{ res.difficulty }}"
+    data-skill="{{ row_skill }}"
+    data-category="{% firstof res.category res.skill.category %}"
+    data-search="{{ res.title }} {{ res.description }} {{ row_skill }} {{ res.platform }} {{ res.resource_type }} {{ res.difficulty }} {% firstof res.category res.skill.category %}">
+    <div class="resource-info">
+        <div class="resource-title">{{ res.title }}</div>
+        {% if res.description %}
+            <p class="resource-desc" title="{{ res.description }}">{{ res.description }}</p>
+        {% endif %}
+        <div class="resource-meta">
+            <span class="tag">{{ row_skill }}</span>
+            <span class="meta-pill">{{ res.platform }}</span>
+            <span class="meta-pill">{{ res.resource_type }}</span>
+            <span class="diff diff-{{ res.difficulty|slugify }}">{{ res.difficulty }}</span>
+            {% for r_id, status in resource_status_map.items %}
+                {% if r_id == res.id %}
+                    <span class="status status-{{ status }}">
+                        {% if status == "completed" %}Completed{% elif status == "in_progress" %}In Progress{% elif status == "saved" %}Saved{% else %}{{ status }}{% endif %}
+                    </span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="resource-actions">
+        <form class="progress-form" method="post" action="{% url 'toggle_resource_progress' res.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ return_view|default:'learning-resources' }}">
+            {% if open_skill %}<input type="hidden" name="open_skill" value="{{ open_skill }}">{% endif %}
+            <button type="submit" name="status" value="in_progress" class="btn-action btn-action-primary" title="Start Learning" aria-label="Mark {{ res.title }} as in progress"><svg class="icon" aria-hidden="true"><use href="#i-play"></use></svg> In Progress</button>
+            <button type="submit" name="status" value="completed" class="btn-action btn-action-complete" title="Mark as Completed" aria-label="Mark {{ res.title }} as completed"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg> Complete</button>
+            <button type="submit" name="status" value="saved" class="btn-action" title="Save for Later" aria-label="Save {{ res.title }} for later"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"></use></svg> Save</button>
+        </form>
+        <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn-link">{{ link_label|default:"Open" }} <svg class="icon" aria-hidden="true"><use href="#i-external"></use></svg></a>
+    </div>
+</li>

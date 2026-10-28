@@ -3,17 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Login</title>
+    <title>Sign In — Student Learning System</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: #f5f6f8;
+            color: #0f172a;
+        }
+        .auth-card {
+            width: min(100%, 500px);
+            padding: 40px clamp(24px, 7vw, 56px);
+            background: #fff;
+            border: 1px solid #e6e8ee;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+        }
+        .form-container { width: 100%; max-width: 432px; margin: 0 auto; }
+        .form-title {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .form-subtitle {
+            font-size: .875rem;
+            color: #64748b;
+            margin-bottom: 28px;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .messages-block { margin-bottom: 16px; }
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: .84rem;
+            margin-bottom: 8px;
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .alert-error, .alert-warning {
+            background: #fff3f3;
+            border-color: #fca5a5;
+            color: #b91c1c;
+        }
+        .non-field-errors, .errorlist { list-style: none; padding: 0; }
+        .non-field-errors { margin-bottom: 16px; }
+        .non-field-errors li,
+        .errorlist li {
+            padding: 9px 12px;
+            border-radius: 6px;
+            background: #fff3f3;
+            border: 1px solid #fca5a5;
+            color: #b91c1c;
+            font-size: .82rem;
+            margin-top: 6px;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-size: .82rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 7px;
+        }
+        .input-wrap { position: relative; }
+        .auth-input {
+            display: block;
+            width: 100%;
+            padding: 11px 46px 11px 14px;
+            border: 1.5px solid #e6e8ee;
+            border-radius: 8px;
+            font-size: .93rem;
+            color: #0f172a;
+            background: #fff;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+            font-family: inherit;
+        }
+        .auth-input::placeholder { color: #94a3b8; font-size: .88rem; }
+        .auth-input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+        }
+        .auth-input.is-error { border-color: #f87171; }
+        .eye-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            color: #64748b;
+            background: transparent;
+            border: 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .eye-btn:hover { color: #4f46e5; }
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 2px 0 18px;
+        }
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .84rem;
+            color: #475569;
+            cursor: pointer;
+        }
+        .remember-label input { accent-color: #4f46e5; }
+        .forgot-link, .signup-row a {
+            color: #4f46e5;
+            font-size: .84rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .forgot-link:hover, .signup-row a:hover { color: #4338ca; text-decoration: underline; }
+        .btn-signin {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            background: #4f46e5;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            box-shadow: 0 4px 14px rgba(79,70,229,.22);
+            font-family: inherit;
+        }
+        .btn-signin:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79,70,229,.3);
+        }
+        .signup-row {
+            margin-top: 20px;
+            text-align: center;
+            font-size: .875rem;
+            color: #64748b;
+        }
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .auth-card { padding: 32px 20px; }
+            .form-title { font-size: 1.35rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: .01ms !important; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Student Login</h1>
+    <main class="auth-card">
+        <div class="form-container">
+            <h1 class="form-title">Welcome back</h1>
+            <p class="form-subtitle">Student Learning System — Sign in to continue your learning journey</p>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
+            {% if messages %}
+                <div class="messages-block" role="status">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-    <p>New student? <a href="{% url 'register' %}">Create an account</a></p>
+            {% if form.non_field_errors %}
+                <ul class="non-field-errors" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <form method="post" autocomplete="on">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <ul class="errorlist" role="alert">
+                            {% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <div class="input-wrap">
+                        {{ form.password }}
+                        <button type="button" class="eye-btn" id="toggle-password"
+                                aria-label="Show password" aria-pressed="false">
+                            <svg id="eye-show" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                 aria-hidden="true">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg id="eye-hide" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                 aria-hidden="true" hidden>
+                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <ul class="errorlist" role="alert">
+                            {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <label class="remember-label">
+                        <input type="checkbox" name="remember_me" id="remember_me">
+                        Keep me signed in
+                    </label>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-signin">Sign in</button>
+            </form>
+
+            <p class="signup-row">First time here? <a href="{% url 'register' %}">Create an account</a></p>
+        </div>
+    </main>
+    <script>
+        (function () {
+            var username = document.getElementById("id_username");
+            var password = document.getElementById("id_password");
+            var toggle = document.getElementById("toggle-password");
+            var showIcon = document.getElementById("eye-show");
+            var hideIcon = document.getElementById("eye-hide");
+
+            if (username) {
+                username.classList.add("auth-input");
+                username.setAttribute("placeholder", "Enter your username");
+                username.setAttribute("spellcheck", "false");
+            }
+            if (password) {
+                password.classList.add("auth-input");
+                password.setAttribute("placeholder", "Enter your password");
+            }
+            [username, password].forEach(function (field) {
+                if (field && field.closest(".form-group").querySelector(".errorlist")) {
+                    field.classList.add("is-error");
+                }
+            });
+            if (toggle && password) {
+                toggle.addEventListener("click", function () {
+                    var visible = password.type === "password";
+                    password.type = visible ? "text" : "password";
+                    toggle.setAttribute("aria-label", visible ? "Hide password" : "Show password");
+                    toggle.setAttribute("aria-pressed", visible ? "true" : "false");
+                    showIcon.hidden = visible;
+                    hideIcon.hidden = !visible;
+                });
+            }
+        })();
+    </script>
 </body>
 </html>
