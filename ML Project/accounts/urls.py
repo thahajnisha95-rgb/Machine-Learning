@@ -1,11 +1,15 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from django.views.generic import RedirectView
+from django.contrib.auth.forms import AuthenticationForm
 from . import views
-from .forms import StyledAuthenticationForm
+
+try:
+    from .forms import StyledAuthenticationForm as LoginForm
+except ImportError:
+    LoginForm = AuthenticationForm
 
 urlpatterns = [
-    path("", RedirectView.as_view(pattern_name="register"), name="home"),
+    path("", views.marketing_home, name="home"),
     path("register/", views.register, name="register"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
@@ -21,7 +25,7 @@ urlpatterns = [
         "login/",
         auth_views.LoginView.as_view(
             template_name="accounts/login.html",
-            authentication_form=StyledAuthenticationForm,
+            authentication_form=LoginForm,
             redirect_authenticated_user=True,
         ),
         name="login",

@@ -1,0 +1,278 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skillmatch — Skills matched to your course</title>
+    <meta name="description" content="Skillmatch recommends skills and learning resources from your course, year, and interests, then helps you track what you save, start, and finish.">
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("learnpath-theme");
+                if (theme === "dark" || theme === "light") {
+                    document.documentElement.setAttribute("data-theme", theme);
+                }
+            } catch (err) {}
+            try {
+                if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                    document.documentElement.classList.add("intro-pending");
+                }
+            } catch (err2) {}
+            try {
+                if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+                if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+                window.scrollTo(0, 0);
+            } catch (err3) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'accounts/marketing.css' %}?v=20261029-42">
+</head>
+<body>
+    <div class="grain" aria-hidden="true"></div>
+    <a class="skip" href="#content">Skip to content</a>
+    <div class="intro" id="site-intro" aria-hidden="true">
+        <p class="intro-word" id="intro-word">Skillmatch</p>
+    </div>
+
+    <header class="nav" id="site-nav">
+        <a class="brand" href="{% url 'home' %}">
+            <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="12" cy="16" r="7.2"/>
+                <circle cx="20" cy="16" r="7.2"/>
+            </svg>
+            <span>Skillmatch</span>
+        </a>
+        <nav class="nav-links" id="site-links" aria-label="Page">
+            <a href="#product">Product</a>
+            <a href="#how">How it works</a>
+            <a href="#skills">Skills</a>
+            <a href="#why">Why Skillmatch</a>
+        </nav>
+        <div class="nav-actions">
+            <button type="button" class="theme-btn" id="theme-toggle" aria-label="Switch to light theme" aria-pressed="false">
+                <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M12 2.6v2.1M12 19.3v2.1M4.2 4.2l1.5 1.5M18.3 18.3l1.5 1.5M2.6 12h2.1M19.3 12h2.1M4.2 19.8l1.5-1.5M18.3 5.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M21 14.3A8.4 8.4 0 0 1 9.7 3 8.5 8.5 0 1 0 21 14.3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <a class="btn btn-solid" href="{% url 'login' %}">Sign in</a>
+            <button type="button" class="menu-btn" id="menu-toggle" aria-expanded="false" aria-controls="site-links" aria-label="Open menu">
+                <span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <main id="content">
+        <section class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Student learning</p>
+                <h1>Skills matched to your course.</h1>
+                <p class="lede">
+                    Tell Skillmatch your course, year, and interests. It recommends skills and
+                    learning resources that fit that profile, then keeps a record of what you
+                    save, start, and finish.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn btn-solid btn-lg" href="{% url 'login' %}">Sign in</a>
+                    <a class="btn btn-ghost btn-lg" href="{% url 'register' %}">Create account</a>
+                </div>
+                <dl class="facts">
+                    <div>
+                        <dt>Profile first</dt>
+                        <dd>Course, year, and interests drive every match.</dd>
+                    </div>
+                    <div>
+                        <dt>Visible reasons</dt>
+                        <dd>Scores and contributing terms stay on the card.</dd>
+                    </div>
+                    <div>
+                        <dt>Your tracker</dt>
+                        <dd>Save, start, and complete without a public feed.</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <aside class="preview-stage" aria-label="Example of a student dashboard">
+            <div class="preview">
+                <div class="preview-head">
+                    <p class="preview-kicker">Your skill profile</p>
+                    <p class="preview-meta">1 of 16 resources finished</p>
+                </div>
+                <div class="preview-body">
+                    <figure class="ring-chart" role="img" aria-label="Skill matches: Deep Learning 92 percent, Machine Learning 81 percent, Python 74 percent, NLP 68 percent">
+                        <div class="ring-visual">
+                            <svg viewBox="0 0 240 240" aria-hidden="true">
+                                <g transform="rotate(-90 120 120)">
+                                    <circle class="ring-track" cx="120" cy="120" r="102"/>
+                                    <circle class="ring-track" cx="120" cy="120" r="80"/>
+                                    <circle class="ring-track" cx="120" cy="120" r="58"/>
+                                    <circle class="ring-track" cx="120" cy="120" r="36"/>
+                                    <circle class="ring-arc match-a" cx="120" cy="120" r="102" pathLength="100" stroke-dasharray="92 100"/>
+                                    <circle class="ring-arc match-b" cx="120" cy="120" r="80" pathLength="100" stroke-dasharray="81 100"/>
+                                    <circle class="ring-arc match-c" cx="120" cy="120" r="58" pathLength="100" stroke-dasharray="74 100"/>
+                                    <circle class="ring-arc match-d" cx="120" cy="120" r="36" pathLength="100" stroke-dasharray="68 100"/>
+                                </g>
+                            </svg>
+                            <div class="ring-center">
+                                <strong>Skills</strong>
+                                <small>matched</small>
+                            </div>
+                        </div>
+                        <ul class="ring-legend">
+                            <li class="match-a"><i></i><span>Deep Learning</span><b>92%</b></li>
+                            <li class="match-b"><i></i><span>Machine Learning</span><b>81%</b></li>
+                            <li class="match-c"><i></i><span>Python</span><b>74%</b></li>
+                            <li class="match-d"><i></i><span>NLP</span><b>68%</b></li>
+                        </ul>
+                    </figure>
+                </div>
+                <div class="preview-metrics" aria-label="Resource progress">
+                    <div class="metric metric-saved">
+                        <strong>1</strong>
+                        <span>Saved</span>
+                    </div>
+                    <div class="metric metric-progress">
+                        <strong>2</strong>
+                        <span>In progress</span>
+                    </div>
+                    <div class="metric metric-done">
+                        <strong>1</strong>
+                        <span>Completed</span>
+                    </div>
+                </div>
+                <p class="preview-note">Matches stay tied to the profile you edit. Progress stays on your account.</p>
+            </div>
+            </aside>
+        </section>
+
+        <section id="product" class="section">
+            <div class="section-head">
+                <p class="eyebrow">Product</p>
+                <h2>One place for the work your course actually asks of you.</h2>
+                <p>Course sites list everything. Skillmatch starts from who you are as a student and keeps the next resource close to the skills you are building.</p>
+            </div>
+            <div class="cards">
+                <article class="card">
+                    <span class="card-index">01</span>
+                    <h3>A profile that drives the matches</h3>
+                    <p>Name, course, year of study, and interests. Those details are what the recommendations use. Empty interests mean fewer matches, so the profile is worth filling in.</p>
+                </article>
+                <article class="card">
+                    <span class="card-index">02</span>
+                    <h3>Skills with a reason</h3>
+                    <p>Each suggestion is scored against your words, your course, and a difficulty that fits your year. You can see why a skill appeared instead of trusting a black box.</p>
+                </article>
+                <article class="card">
+                    <span class="card-index">03</span>
+                    <h3>Resources you can act on</h3>
+                    <p>Courses, tutorials, videos, documentation, books, and projects, with platform and level. Open one, or save it, start it, and mark it complete.</p>
+                </article>
+                <article class="card">
+                    <span class="card-index">04</span>
+                    <h3>Progress that stays yours</h3>
+                    <p>Saved, in progress, and completed live on the dashboard. A rating is optional. Nothing here is a public feed.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="how" class="section">
+            <div class="section-head">
+                <p class="eyebrow">How it works</p>
+                <h2>Four steps from a blank account to a path you can follow.</h2>
+            </div>
+            <ol class="steps">
+                <li>
+                    <span>01</span>
+                    <h3>Create your account</h3>
+                    <p>Register with a username and password, then sign in. The student profile is created with your account.</p>
+                </li>
+                <li>
+                    <span>02</span>
+                    <h3>Describe what you study</h3>
+                    <p>Add your course, year, and interests. Short phrases are enough. The matcher treats them as the brief for your recommendations.</p>
+                </li>
+                <li>
+                    <span>03</span>
+                    <h3>Open a matched resource</h3>
+                    <p>Review the skill list and the resources attached to it. Links go to the original course, tutorial, or documentation.</p>
+                </li>
+                <li>
+                    <span>04</span>
+                    <h3>Track what you finish</h3>
+                    <p>Save a resource, mark it in progress, or complete it. The dashboard counts each state so you can see movement, not just a list.</p>
+                </li>
+            </ol>
+        </section>
+
+        <section id="skills" class="section">
+            <div class="section-head">
+                <p class="eyebrow">Skills</p>
+                <h2>Tracks already prepared for the dashboard.</h2>
+                <p>These are the skill areas Skillmatch can match. Signing in shows the ones that fit your profile, with resources beside them.</p>
+            </div>
+            <div class="skill-grid">
+                {% for skill in skills %}
+                    <article class="skill">
+                        <h3>{{ skill.name }}</h3>
+                        {% if skill.description %}<p>{{ skill.description }}</p>{% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section id="why" class="section split">
+            <div class="why-copy">
+                <p class="eyebrow">Why Skillmatch</p>
+                <h2>Recommendations you can check, and a tracker that does not reset.</h2>
+                <p>The matcher is built for students who need a next step, not another unsorted reading list. Sign in to use the same dashboard the recommendations feed.</p>
+            </div>
+            <ul class="reasons">
+                <li>
+                    <h3>Matched, not shuffled</h3>
+                    <p>Suggestions come from your interests, course, and year. A first-year brief and a later-year brief should not receive the same difficulty.</p>
+                </li>
+                <li>
+                    <h3>Visible reasons</h3>
+                    <p>Match scores and the terms that contributed are part of the product, so you can tell a strong fit from a weak one.</p>
+                </li>
+                <li>
+                    <h3>Your account, your progress</h3>
+                    <p>Saved, started, and completed resources stay with the student who marked them. Sign in returns you to that dashboard.</p>
+                </li>
+            </ul>
+        </section>
+
+        <section class="closing">
+            <p class="eyebrow">Get started</p>
+            <h2>Sign in and open the dashboard.</h2>
+            <p>New students can create an account first. After login you go straight to your learning dashboard.</p>
+            <div class="hero-actions">
+                <a class="btn btn-solid btn-lg" href="{% url 'login' %}">Sign in</a>
+                <a class="btn btn-ghost btn-lg" href="{% url 'register' %}">Create account</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <a class="brand" href="{% url 'home' %}">
+            <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="12" cy="16" r="7.2"/>
+                <circle cx="20" cy="16" r="7.2"/>
+            </svg>
+            <span>Skillmatch</span>
+        </a>
+        <span class="footer-links">
+            <a href="{% url 'login' %}">Sign in</a>
+            <a href="{% url 'register' %}">Create account</a>
+        </span>
+    </footer>
+    <script src="{% static 'accounts/marketing.js' %}?v=20261029-10"></script>
+</body>
+</html>
