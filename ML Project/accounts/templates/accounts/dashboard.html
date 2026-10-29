@@ -19,7 +19,7 @@
             <div class="dash-main">
                 <div class="greeting">
                     <div>
-                        <h1 id="greeting-title"><span id="greeting-hello">Welcome back</span>, {{ display_name }}</h1>
+                        <h1 id="greeting-title">Hello, {{ request.user.username }}</h1>
                         <p>Recommendations are matched to your course, year, and interests.</p>
                     </div>
                     <a class="btn btn-primary" href="{% url 'dashboard' %}#skill-recommendations">Explore Learning Paths</a>
@@ -69,15 +69,15 @@
                                 {% if profile and profile.full_name %}
                                     <div class="profile-field">
                                         <p class="profile-label">Full name</p>
-                                        <p class="profile-value">{{ profile.full_name }}</p>
+                                        <p class="profile-value" title="{{ profile.full_name }}">{{ profile.full_name }}</p>
                                     </div>
                                     <div class="profile-field">
                                         <p class="profile-label">Course / degree</p>
-                                        <p class="profile-value">{{ profile.course|default:"Not specified" }}</p>
+                                        <p class="profile-value" title="{{ profile.course|default:'Not specified' }}">{{ profile.course|default:"Not specified" }}</p>
                                     </div>
                                     <div class="profile-field">
                                         <p class="profile-label">Year of study</p>
-                                        <p class="profile-value">Year {{ profile.year_of_study }}</p>
+                                        <p class="profile-value" title="Year {{ profile.year_of_study }}">Year {{ profile.year_of_study }}</p>
                                     </div>
                                     <div class="profile-field">
                                         <p class="profile-label">Interests</p>
@@ -139,20 +139,20 @@
                 <section class="panel" aria-labelledby="preview-title">
                     <div class="panel-head">
                         <div>
-                            <h2 id="preview-title">Recommended learning resources</h2>
-                            <p class="support">Open a resource here, or use Learning Resources to save, start, or complete it.</p>
+                            <h2 id="preview-title">All Learning Resources</h2>
+                            <p class="support">Browse all available courses, tutorials, and documentation across every skill.</p>
                         </div>
                         <a class="link-all" href="{% url 'dashboard' %}#learning-resources">View all</a>
                     </div>
-                    {% if recommendations and recommendations.recommended_resources %}
+                    {% if learning_resources %}
                         <ul class="preview-list">
-                            {% for res in recommendations.recommended_resources|slice:":3" %}
+                            {% for res in learning_resources %}
                                 <li class="preview-row">
                                     <div>
                                         <div class="resource-title">{{ res.title }}</div>
                                         {% if res.description %}<p class="resource-desc">{{ res.description }}</p>{% endif %}
                                         <div class="resource-meta">
-                                            <span class="tag">{{ res.skill_name }}</span>
+                                            <span class="tag">{{ res.skill.name }}</span>
                                             <span class="meta-pill">{{ res.platform }}</span>
                                             <span class="diff diff-{{ res.difficulty|slugify }}">{{ res.difficulty }}</span>
                                         </div>

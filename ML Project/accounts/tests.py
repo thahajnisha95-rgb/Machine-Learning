@@ -41,6 +41,8 @@ class AccessPermissionTests(TestCase):
         self.client.login(username="student1", password="password123")
         response = self.client.get(reverse("dashboard"))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Hello, student1")
+        self.assertNotContains(response, "Good morning")
         self.assertContains(response, "Student One")
         self.assertContains(response, "Computer Science")
 
@@ -65,6 +67,12 @@ class AccessPermissionTests(TestCase):
             title="Machine Learning Course",
             url="https://example.com/ml",
         )
+        for resource_number in range(1, 5):
+            LearningResource.objects.create(
+                skill=python,
+                title=f"Additional Python Resource {resource_number}",
+                url=f"https://example.com/python-{resource_number}",
+            )
         LearningResource.objects.create(
             skill=machine_learning,
             title="Inactive Course",
@@ -76,9 +84,11 @@ class AccessPermissionTests(TestCase):
         response = self.client.get(reverse("dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context["learning_resources"]), 2)
+        self.assertEqual(len(response.context["learning_resources"]), 6)
+        self.assertContains(response, 'class="preview-row"', count=6)
         self.assertContains(response, "Python Course")
         self.assertContains(response, "Machine Learning Course")
+        self.assertContains(response, "Additional Python Resource 4")
         self.assertContains(response, 'data-category="Artificial Intelligence"')
         self.assertNotContains(response, "Inactive Course")
         self.assertContains(response, '<li id="crumb-current" aria-current="page">Dashboard</li>')
@@ -91,6 +101,8 @@ class AccessPermissionTests(TestCase):
         response = self.client.get(reverse("edit_profile"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Student Profile")
+        self.assertContains(response, '<datalist id="course-options">')
+        self.assertContains(response, "BSc Computer Science")
 
 
 class StudentProfileTests(TestCase):
@@ -123,6 +135,39 @@ class StudentProfileTests(TestCase):
         form = StudentProfileForm(data=form_data)
         self.assertTrue(form.is_valid())
 
+    def test_profile_form_year_choices_match_course_duration(self):
+        cases = (
+            ("B.Sc. Computer Science", 3, ("First Year", "Second Year", "Final Year")),
+            ("BCA Data Science", 3, ("First Year", "Second Year", "Final Year")),
+            ("B.Tech. Computer Science", 4, ("First Year", "Second Year", "Third Year", "Final Year")),
+            ("B.E. Civil Engineering", 4, ("First Year", "Second Year", "Third Year", "Final Year")),
+            ("M.Sc. Data Science", 2, ("First Year", "Final Year")),
+            ("MCA", 2, ("First Year", "Final Year")),
+        )
+        for course, year_count, expected_labels in cases:
+            with self.subTest(course=course):
+                form = StudentProfileForm(data={
+                    "full_name": "Jane Smith",
+                    "course": course,
+                    "year_of_study": year_count,
+                    "interests": "Python",
+                })
+                self.assertEqual(
+                    tuple(label for _, label in form.fields["year_of_study"].choices),
+                    expected_labels,
+                )
+                self.assertTrue(form.is_valid(), form.errors)
+
+    def test_profile_form_rejects_year_outside_course_duration(self):
+        form = StudentProfileForm(data={
+            "full_name": "Jane Smith",
+            "course": "BCA Data Science",
+            "year_of_study": 4,
+            "interests": "Python",
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn("year_of_study", form.errors)
+
     def test_profile_edit_view_post_updates_database(self):
         client = Client()
         client.login(username="john_doe", password="SecurePassword123!")
@@ -130,7 +175,7 @@ class StudentProfileTests(TestCase):
         post_data = {
             "full_name": "John Doe Updated",
             "course": "M.Sc AI & Robotics",
-            "year_of_study": 4,
+            "year_of_study": 2,
             "interests": "Robotics, ROS, Python",
         }
         response = client.post(reverse("edit_profile"), data=post_data, follow=True)
@@ -139,7 +184,7 @@ class StudentProfileTests(TestCase):
         profile = StudentProfile.objects.get(user=self.user)
         self.assertEqual(profile.full_name, "John Doe Updated")
         self.assertEqual(profile.course, "M.Sc AI & Robotics")
-        self.assertEqual(profile.year_of_study, 4)
+        self.assertEqual(profile.year_of_study, 2)
         self.assertIn("Robotics", profile.interests)
 
 

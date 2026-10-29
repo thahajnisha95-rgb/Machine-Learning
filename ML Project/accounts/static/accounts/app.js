@@ -96,10 +96,43 @@
         if (opts.closeDrawer && isMobile()) setDrawer(false);
     }
 
-    var hello = document.getElementById("greeting-hello");
-    if (hello) {
-        var hour = new Date().getHours();
-        hello.textContent = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    var courseInput = document.getElementById("id_course");
+    var yearSelect = document.getElementById("id_year_of_study");
+    if (courseInput && yearSelect) {
+        var durationRules = JSON.parse(yearSelect.getAttribute("data-course-durations") || "{}");
+        var coursePrefixes = Object.keys(durationRules).sort(function (a, b) {
+            return b.length - a.length;
+        });
+
+        function updateStudyYears() {
+            var course = courseInput.value.toLowerCase().replace(/[^a-z0-9]/g, "");
+            var duration = 4;
+            for (var i = 0; i < coursePrefixes.length; i += 1) {
+                if (course.indexOf(coursePrefixes[i]) === 0) {
+                    duration = durationRules[coursePrefixes[i]];
+                    break;
+                }
+            }
+            if (duration === 4 && /^(m|pg|postgraduate)/.test(course)) duration = 2;
+
+            var labels = duration === 3
+                ? ["First Year", "Second Year", "Final Year"]
+                : duration === 2
+                    ? ["First Year", "Final Year"]
+                    : ["First Year", "Second Year", "Third Year", "Final Year"];
+            var currentYear = yearSelect.value;
+            yearSelect.textContent = "";
+            labels.forEach(function (label, index) {
+                var option = document.createElement("option");
+                option.value = String(index + 1);
+                option.textContent = label;
+                yearSelect.appendChild(option);
+            });
+            yearSelect.value = Number(currentYear) <= labels.length ? currentYear : String(labels.length);
+        }
+
+        courseInput.addEventListener("input", updateStudyYears);
+        updateStudyYears();
     }
 
     function hideTooltip() {

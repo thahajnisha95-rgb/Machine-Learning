@@ -946,6 +946,7 @@ html[data-view="learning-progress"] #learning-progress {
     align-items: baseline;
     gap: 12px;
     min-height: 28px;
+    min-width: 0;
 }
 
 .profile-field .profile-label,
@@ -954,10 +955,23 @@ html[data-view="learning-progress"] #learning-progress {
     margin: 0;
 }
 
+.profile-field .profile-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
 .profile-field .profile-value,
 .profile-field .tags {
     text-align: right;
     justify-content: flex-end;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-field .tags {
+    flex-wrap: nowrap;
 }
 
 .ring {

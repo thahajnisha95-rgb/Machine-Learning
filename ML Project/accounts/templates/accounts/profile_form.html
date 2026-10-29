@@ -21,6 +21,11 @@
 
         <form method="post">
             {% csrf_token %}
+            <datalist id="course-options">
+                {% for course_option in form.course_options %}
+                    <option value="{{ course_option }}">
+                {% endfor %}
+            </datalist>
             {% for field in form %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
