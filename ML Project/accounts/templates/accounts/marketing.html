@@ -19,12 +19,17 @@
                     document.documentElement.classList.add("intro-pending");
                 }
             } catch (err2) {}
+            try {
+                if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+                if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+                window.scrollTo(0, 0);
+            } catch (err3) {}
         })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'accounts/marketing.css' %}?v=20261029-41">
+    <link rel="stylesheet" href="{% static 'accounts/marketing.css' %}?v=20261029-42">
 </head>
 <body>
     <div class="grain" aria-hidden="true"></div>
@@ -268,6 +273,6 @@
             <a href="{% url 'register' %}">Create account</a>
         </span>
     </footer>
-    <script src="{% static 'accounts/marketing.js' %}?v=20261029-9"></script>
+    <script src="{% static 'accounts/marketing.js' %}?v=20261029-10"></script>
 </body>
 </html>

@@ -1,5 +1,23 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from .models import StudentProfile
+
+
+class StyledAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs.update({
+            "class": "auth-input",
+            "placeholder": "Enter your username",
+            "autocomplete": "username",
+            "spellcheck": "false",
+        })
+        self.fields["password"].widget.attrs.update({
+            "class": "auth-input",
+            "placeholder": "Enter your password",
+            "autocomplete": "current-password",
+        })
+
 
 
 class StudentProfileForm(forms.ModelForm):

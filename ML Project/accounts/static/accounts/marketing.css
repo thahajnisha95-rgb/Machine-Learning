@@ -839,6 +839,11 @@ html.intro-pending .ring-legend li {
 }
 
 html.intro-pending,
+html.intro-leaving {
+    scroll-behavior: auto;
+}
+
+html.intro-pending,
 html.intro-pending body {
     background: #000000;
 }

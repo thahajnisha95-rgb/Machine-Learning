@@ -4,6 +4,15 @@
     var menuBtn = document.getElementById("menu-toggle");
     var links = document.getElementById("site-links");
 
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    try {
+        if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    } catch (err) {}
+    window.scrollTo(0, 0);
+    window.addEventListener("pageshow", function () {
+        window.scrollTo(0, 0);
+    });
+
     function current() {
         return root.getAttribute("data-theme") === "light" ? "light" : "dark";
     }
@@ -78,14 +87,30 @@
         event.preventDefault();
     }
 
+    function blockIntroKeys(event) {
+        var key = event.key;
+        if (key === "Escape") return;
+        if (key === " " || key === "PageDown" || key === "PageUp" || key === "Home" || key === "End" || key === "ArrowDown" || key === "ArrowUp") {
+            event.preventDefault();
+        }
+    }
+
     function lockIntroScroll() {
         document.addEventListener("wheel", blockIntroScroll, { passive: false });
         document.addEventListener("touchmove", blockIntroScroll, { passive: false });
+        document.addEventListener("keydown", blockIntroKeys, { passive: false });
     }
 
     function unlockIntroScroll() {
         document.removeEventListener("wheel", blockIntroScroll);
         document.removeEventListener("touchmove", blockIntroScroll);
+        document.removeEventListener("keydown", blockIntroKeys);
+    }
+
+    function holdTop() {
+        if (introDone) return;
+        if (window.pageYOffset) window.scrollTo(0, 0);
+        window.requestAnimationFrame(holdTop);
     }
 
     function finishIntro() {
@@ -94,6 +119,7 @@
         unlockIntroScroll();
         if (intro && intro.parentNode) intro.parentNode.removeChild(intro);
         root.classList.remove("intro-pending", "intro-leaving");
+        window.scrollTo(0, 0);
         watchCards();
     }
 
@@ -160,6 +186,8 @@
 
         word.addEventListener("animationend", written);
         lockIntroScroll();
+        window.scrollTo(0, 0);
+        window.requestAnimationFrame(holdTop);
         window.requestAnimationFrame(function () {
             word.classList.add("is-writing");
         });
