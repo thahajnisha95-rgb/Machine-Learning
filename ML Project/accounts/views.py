@@ -12,6 +12,58 @@ from .forms import StudentProfileForm
 from student_learning_system import get_recommendations_for_student
 
 
+FALLBACK_SKILLS = [
+    {
+        "name": "Python Programming",
+        "category": "Programming Languages",
+        "description": "A practical starting language for coursework, data work, and the projects behind many AI tools.",
+    },
+    {
+        "name": "Machine Learning",
+        "category": "Artificial Intelligence",
+        "description": "Methods that learn patterns from data, from first models through evaluation you can explain.",
+    },
+    {
+        "name": "Deep Learning & Neural Networks",
+        "category": "Artificial Intelligence",
+        "description": "Layered models for images, text, and other complex data, introduced at a pace that matches your year.",
+    },
+    {
+        "name": "Web Development & Django",
+        "category": "Web Development",
+        "description": "Pages, forms, and data-backed applications, including the kind of site you are using now.",
+    },
+    {
+        "name": "Computer Vision",
+        "category": "Artificial Intelligence",
+        "description": "Working with images and video so a model can detect, classify, and describe what it sees.",
+    },
+]
+
+
+def marketing_home(request):
+    """Public product page. Sign-in continues through the existing login flow."""
+    skills = list(
+        Skill.objects.exclude(name__icontains="Data Science")
+        .values("name", "category", "description")[:6]
+    )
+    if not skills:
+        skills = list(FALLBACK_SKILLS)
+    else:
+        seen = {skill["name"] for skill in skills}
+        for extra in FALLBACK_SKILLS:
+            if len(skills) >= 6:
+                break
+            if extra["name"] not in seen:
+                skills.append(extra)
+                seen.add(extra["name"])
+    return render(
+        request,
+        "accounts/marketing.html",
+        {"skills": skills},
+    )
+
+
 def register(request):
     """Register a new student account and automatically provision a student profile."""
     if request.method == "POST":

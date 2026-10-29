@@ -27,6 +27,14 @@ class AccessPermissionTests(TestCase):
             interests="Python, Django",
         )
 
+    def test_home_is_public_marketing_page(self):
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Sign in")
+        self.assertContains(response, "Skillmatch")
+        self.assertContains(response, reverse("login"))
+        self.assertContains(response, reverse("register"))
+
     def test_unauthenticated_dashboard_redirects(self):
         response = self.client.get(reverse("dashboard"))
         self.assertEqual(response.status_code, 302)

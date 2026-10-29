@@ -1,10 +1,9 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from django.views.generic import RedirectView
 from . import views
 
 urlpatterns = [
-    path("", RedirectView.as_view(pattern_name="register"), name="home"),
+    path("", views.marketing_home, name="home"),
     path("register/", views.register, name="register"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
