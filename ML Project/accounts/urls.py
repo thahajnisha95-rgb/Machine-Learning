@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .forms import StyledAuthenticationForm
 
 urlpatterns = [
     path("", views.marketing_home, name="home"),
@@ -18,7 +19,9 @@ urlpatterns = [
     path(
         "login/",
         auth_views.LoginView.as_view(
-            template_name="accounts/login.html"
+            template_name="accounts/login.html",
+            authentication_form=StyledAuthenticationForm,
+            redirect_authenticated_user=True,
         ),
         name="login",
     ),

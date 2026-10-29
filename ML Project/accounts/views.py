@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -9,6 +8,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 from .models import StudentProfile, Skill, LearningResource, StudentResourceProgress
 from .forms import StudentProfileForm
+from .registration_forms import StudentRegistrationForm
 from student_learning_system import get_recommendations_for_student
 
 
@@ -66,8 +66,11 @@ def marketing_home(request):
 
 def register(request):
     """Register a new student account and automatically provision a student profile."""
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = StudentRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             StudentProfile.objects.get_or_create(
@@ -85,7 +88,7 @@ def register(request):
             )
             return redirect("login")
     else:
-        form = UserCreationForm()
+        form = StudentRegistrationForm()
 
     return render(
         request,
