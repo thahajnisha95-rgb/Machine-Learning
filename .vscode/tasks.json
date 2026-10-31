@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Skillmatch",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "manage.py",
+                "runserver",
+                "127.0.0.1:8000"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/ML Project"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
