@@ -175,8 +175,8 @@ body {
 }
 
 .sidebar {
-    width: var(--sidebar);
-    flex: 0 0 var(--sidebar);
+    width: var(--sidebar-collapsed);
+    flex: 0 0 var(--sidebar-collapsed);
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -184,7 +184,19 @@ body {
     color: var(--text);
     border-right: 1px solid var(--border);
     z-index: 30;
-    transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1), flex-basis 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    /* Smooth spring-like expand/collapse — matches Framer Motion layout animation */
+    transition:
+        width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+        flex-basis 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
+}
+
+/* Hover-expand: expand the sidebar when the cursor enters */
+@media (min-width: 768px) {
+    .sidebar:hover {
+        width: var(--sidebar);
+        flex-basis: var(--sidebar);
+    }
 }
 
 .brand-row {
@@ -192,28 +204,56 @@ body {
     align-items: center;
     gap: 8px;
     height: var(--nav-h);
-    padding: 0 12px 0 14px;
+    padding: 0 6px;
+    justify-content: center;
+    transition: padding 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 768px) {
+    .sidebar:hover .brand-row {
+        padding: 0 12px 0 14px;
+        justify-content: flex-start;
+    }
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0;
     min-width: 0;
     flex: 1;
     color: var(--text);
     text-decoration: none;
     font-weight: 600;
     letter-spacing: -0.03em;
+    justify-content: center;
+    transition: gap 0.38s cubic-bezier(0.22, 1, 0.36, 1), justify-content 0s;
+}
+
+@media (min-width: 768px) {
+    .sidebar:hover .brand {
+        gap: 10px;
+        justify-content: flex-start;
+    }
 }
 
 .brand-text {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    max-width: 160px;
+    max-width: 0;
+    opacity: 0;
     overflow: hidden;
-    transition: max-width 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+    transition:
+        max-width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.22s ease;
+}
+
+@media (min-width: 768px) {
+    .sidebar:hover .brand-text {
+        max-width: 160px;
+        opacity: 1;
+    }
 }
 .brand-tag {
     font-size: 11px;
@@ -269,7 +309,7 @@ body {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0;
     min-height: 40px;
     padding: 0 10px;
     border-radius: var(--control-radius);
@@ -284,33 +324,43 @@ body {
     cursor: pointer;
     font-family: inherit;
     overflow: hidden;
+    justify-content: center;
+    transition: gap 0.38s cubic-bezier(0.22, 1, 0.36, 1), background 0.15s ease, color 0.15s ease;
+}
+
+@media (min-width: 768px) {
+    .sidebar:hover .nav-link {
+        gap: 10px;
+        justify-content: flex-start;
+    }
 }
 
 .nav-label,
 .user-meta {
     display: inline-block;
     min-width: 0;
-    max-width: 170px;
+    /* Start hidden; expand when sidebar is hovered */
+    max-width: 0;
+    opacity: 0;
     overflow: hidden;
     white-space: nowrap;
     vertical-align: middle;
-    transition: max-width 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+    transition:
+        max-width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.22s ease;
+}
+
+@media (min-width: 768px) {
+    .sidebar:hover .nav-label,
+    .sidebar:hover .user-meta {
+        max-width: 170px;
+        opacity: 1;
+    }
 }
 
 .sidebar .nav-link:hover { background: var(--hover); color: var(--text); }
 
-.sidebar-collapse {
-    width: 100%;
-    height: 40px;
-    justify-content: flex-start;
-    padding: 0 10px;
-    flex: 0 0 40px;
-    color: var(--muted);
-}
-
-.sidebar .sidebar-collapse:hover { background: var(--hover); color: var(--text); }
-.sidebar-collapse .icon { transition: transform 0.2s ease; }
-html.sidebar-collapsed .sidebar-collapse .icon { transform: rotate(180deg); }
+/* sidebar-collapse button removed — sidebar now expands on hover */
 
 .sidebar .nav-link.is-active,
 html[data-view="overview"] .sidebar .nav-link[data-nav="overview"],
@@ -1167,31 +1217,20 @@ html[data-view="learning-progress"] #learning-progress {
 }
 .record-main > .support { margin: 4px 0 0; max-width: 62ch; }
 
-.record-tabs {
-    display: flex;
-    gap: 6px;
-    margin: 16px 0 22px;
-    border-bottom: 1px solid var(--border);
-}
-.record-tab {
-    margin: 0 0 -1px;
-    padding: 8px 12px 10px;
-    border-bottom: 2px solid transparent;
+/* Section label replaces the old tab nav */
+.profile-section-label {
+    margin: 22px 0 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--muted);
-    font-size: 13.5px;
-    font-weight: 500;
-    text-decoration: none;
-}
-.record-tab:hover { color: var(--text); }
-.record-tab.is-active {
-    color: #f97316;
-    border-bottom-color: #f97316;
 }
 
 .record-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 18px 32px;
+    gap: 20px 32px;
 }
 .record-sheet .form-group { margin: 0; }
 .record-sheet .form-group label,
@@ -1772,30 +1811,7 @@ html[data-view="learning-progress"] #learning-progress {
     gap: 12px;
 }
 
-@media (min-width: 768px) {
-    html.sidebar-collapsed .sidebar {
-        width: var(--sidebar-collapsed);
-        flex-basis: var(--sidebar-collapsed);
-    }
-    html.sidebar-collapsed .brand-text,
-    html.sidebar-collapsed .nav-label,
-    html.sidebar-collapsed .user-meta {
-        max-width: 0;
-        opacity: 0;
-    }
-    html.sidebar-collapsed .brand-row { justify-content: center; gap: 0; padding: 0 6px; }
-    html.sidebar-collapsed .brand { flex: 0 0 auto; gap: 0; }
-    html.sidebar-collapsed .brand,
-    html.sidebar-collapsed .nav-link,
-    html.sidebar-collapsed .user-card { justify-content: center; gap: 0; }
-    html.sidebar-collapsed .sidebar-collapse {
-        width: 100%;
-        justify-content: center;
-        padding: 0;
-    }
-    html.sidebar-collapsed .user-card { padding: 8px; }
-    html.sidebar-collapsed .help-panel { left: calc(100% + 8px); right: auto; bottom: 0; width: 240px; }
-}
+/* sidebar-collapsed media block removed — hover-expand now handles this */
 
 @media (max-width: 1100px) {
     .dash-layout, .profile-columns, .path-track, .record-layout { grid-template-columns: 1fr; }

@@ -14,11 +14,6 @@
                 <h1 id="edit-profile-title">Student Profile</h1>
                 <p class="support">Complete your profile to receive personalized skill and course recommendations.</p>
 
-                <nav class="record-tabs" aria-label="Profile sections">
-                    <a class="record-tab is-active" href="#profile-details" aria-current="true">Details</a>
-                    <a class="record-tab" href="#profile-interests">Interests</a>
-                </nav>
-
                 {% if form.non_field_errors %}
                     <ul class="errorlist">
                         {% for error in form.non_field_errors %}
@@ -26,11 +21,15 @@
                         {% endfor %}
                     </ul>
                 {% endif %}
+
                 <datalist id="course-options">
                     {% for course_option in form.course_options %}
                         <option value="{{ course_option }}">
                     {% endfor %}
                 </datalist>
+
+                <!-- ── Personal Details ─────────────────────────────── -->
+                <p class="profile-section-label">Personal Details</p>
                 <div id="profile-details" class="record-grid">
                     <div class="form-group">
                         <label for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}{% if form.full_name.field.required %}<abbr class="req" title="required">*</abbr>{% endif %}</label>
@@ -65,6 +64,7 @@
                     </div>
                 </div>
 
+                <!-- ── Interests ────────────────────────────────────── -->
                 <section id="profile-interests" class="record-section">
                     <div class="record-section-head">
                         <h2><label for="{{ form.interests.id_for_label }}">{{ form.interests.label }}</label></h2>

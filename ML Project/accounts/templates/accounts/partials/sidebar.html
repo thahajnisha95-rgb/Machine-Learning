@@ -19,9 +19,6 @@
     <hr class="side-divider">
 
     <nav class="side-nav" aria-label="Dashboard sections">
-        <button type="button" id="sidebar-collapse" class="nav-link sidebar-collapse" aria-controls="app-sidebar" aria-expanded="true" aria-label="Collapse sidebar" data-tooltip="Collapse sidebar">
-            <svg class="icon" aria-hidden="true"><use href="#i-panel-toggle"></use></svg>
-        </button>
         <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} is-active{% endif %}" href="{% url 'dashboard' %}#overview" data-nav="overview" data-tooltip="Dashboard"{% if request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
             <svg class="icon" aria-hidden="true"><use href="#i-dashboard"></use></svg>
             <span class="nav-label">Dashboard</span>
@@ -60,13 +57,6 @@
                 <a href="{% url 'api_recommendations' %}" target="_blank" rel="noopener noreferrer">Recommendations API</a>
             </div>
         </div>
-        <a class="user-card" href="{% url 'edit_profile' %}" data-tooltip="{{ display_name }}">
-            <span class="avatar" aria-hidden="true">{{ display_name|slice:":1"|upper }}</span>
-            <span class="user-meta">
-                <span class="user-name">{{ display_name }}</span>
-                <span class="user-sub">{{ request.user.username }}</span>
-            </span>
-        </a>
     </div>
 </aside>
 <div id="sidebar-backdrop" class="backdrop" hidden></div>

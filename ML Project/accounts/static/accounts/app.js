@@ -140,20 +140,8 @@
     }
 
     function showTooltip(el) {
-        if (!tooltip || !el || isMobile() || !root.classList.contains("sidebar-collapsed")) {
-            hideTooltip();
-            return;
-        }
-        var label = el.getAttribute("data-tooltip");
-        if (!label) {
-            hideTooltip();
-            return;
-        }
-        var rect = el.getBoundingClientRect();
-        tooltip.textContent = label;
-        tooltip.hidden = false;
-        tooltip.style.top = (rect.top + rect.height / 2) + "px";
-        tooltip.style.left = (rect.right + 10) + "px";
+        /* tooltips disabled — nav labels are visible on sidebar hover */
+        hideTooltip();
     }
 
     function closeHelp() {
@@ -162,7 +150,7 @@
         if (helpBtn) helpBtn.setAttribute("aria-expanded", "false");
     }
 
-    setCollapsed(read("learnpath-sidebar") === "collapsed");
+    /* sidebar-collapsed state now driven by CSS hover — no localStorage restore needed */
 
     function syncTheme() {
         var dark = root.getAttribute("data-theme") === "dark";
@@ -181,14 +169,7 @@
         });
     }
 
-    if (collapseBtn) {
-        collapseBtn.addEventListener("click", function () {
-            var collapsed = !root.classList.contains("sidebar-collapsed");
-            setCollapsed(collapsed);
-            store("learnpath-sidebar", collapsed ? "collapsed" : "expanded");
-            hideTooltip();
-        });
-    }
+    /* collapse button removed — sidebar expands on hover via CSS */
 
     if (openBtn) openBtn.addEventListener("click", function () { setDrawer(true); });
     if (closeBtn) closeBtn.addEventListener("click", function () { setDrawer(false); });
