@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Skillmatch",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/ML Project/manage.py",
+            "args": [
+                "runserver",
+                "127.0.0.1:8000",
+                "--noreload"
+            ],
+            "django": true,
+            "cwd": "${workspaceFolder}/ML Project",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "config.settings"
+            },
+            "justMyCode": true
+        }
+    ]
+}
