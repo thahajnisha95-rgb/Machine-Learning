@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from .registration_forms import StudentRegistrationForm
@@ -75,7 +75,7 @@ class StudentRegistrationFormTests(TestCase):
 
         response = self.client.get(reverse("register"))
 
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertRedirects(response, reverse("onboarding"))
 
     def test_logout_redirects_to_registration_page(self):
         user = User.objects.create_user(username="student123", password="N7vQp4x!")
@@ -92,15 +92,45 @@ class StudentRegistrationFormTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="auth-card"')
-        self.assertContains(response, "background: #f5f6f8")
-        self.assertContains(response, "background: #4f46e5")
+        self.assertContains(response, "--bg: #050505")
+        self.assertContains(response, "background: var(--solid)")
         self.assertNotContains(response, "login-photo.jpg")
         self.assertNotContains(response, "<img")
 
-    def test_authenticated_user_is_redirected_away_from_login(self):
+    def test_sign_in_shows_login_page_even_when_a_session_exists(self):
         user = User.objects.create_user(username="student123", password="N7vQp4x!")
         self.client.force_login(user)
 
         response = self.client.get(reverse("login"))
 
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Welcome back")
+        self.assertContains(response, 'class="btn-signin"')
+
+    def test_stale_login_csrf_token_returns_to_sign_in(self):
+        client = Client(enforce_csrf_checks=True)
+        client.get(reverse("login"))
+
+        response = client.post(reverse("login"), {
+            "username": "student123",
+            "password": "N7vQp4x!",
+            "csrfmiddlewaretoken": "stale-token",
+        }, follow=True)
+
+        self.assertRedirects(response, reverse("login"), status_code=302, target_status_code=200)
+        self.assertContains(response, "That form expired")
+        self.assertContains(response, "Welcome back")
+
+    def test_valid_csrf_login_still_signs_in(self):
+        User.objects.create_user(username="student123", password="N7vQp4x!")
+        client = Client(enforce_csrf_checks=True)
+        login_page = client.get(reverse("login"))
+        token = str(login_page.context["csrf_token"])
+
+        response = client.post(reverse("login"), {
+            "username": "student123",
+            "password": "N7vQp4x!",
+            "csrfmiddlewaretoken": token,
+        })
+
+        self.assertRedirects(response, reverse("onboarding"))

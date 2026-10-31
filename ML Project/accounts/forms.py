@@ -3,6 +3,8 @@ import re
 
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import User
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from .models import StudentProfile
 
 
@@ -139,21 +141,16 @@ class StudentProfileForm(forms.ModelForm):
         label="Year of Study",
         help_text="Select your current year of study"
     )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        course_value = self.data.get(
-            self.add_prefix("course"),
-            self.initial.get("course", getattr(self.instance, "course", "")),
-        )
-        self.course_options = COURSE_OPTIONS
-        self.fields["course"].widget.attrs.update({"list": "course-options"})
-        self.fields["year_of_study"].choices = get_year_choices(
-            get_course_year_count(course_value)
-        )
-        self.fields["year_of_study"].widget.attrs["data-course-durations"] = json.dumps(
-            COURSE_DURATION_RULES
-        )
+    username = forms.CharField(
+        max_length=150,
+        label="Username",
+        validators=[UnicodeUsernameValidator()],
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "autocomplete": "username",
+            "spellcheck": "false",
+        }),
+    )
 
     class Meta:
         model = StudentProfile
@@ -189,9 +186,49 @@ class StudentProfileForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = getattr(self.instance, "user", None)
+        if getattr(user, "pk", None) and not self.is_bound:
+            self.initial["username"] = user.username
+        course_value = self.data.get(
+            self.add_prefix("course"),
+            self.initial.get("course", getattr(self.instance, "course", "")),
+        )
+        self.course_options = COURSE_OPTIONS
+        self.fields["course"].widget.attrs.update({"list": "course-options"})
+        self.fields["year_of_study"].choices = get_year_choices(
+            get_course_year_count(course_value)
+        )
+        self.fields["year_of_study"].widget.attrs["data-course-durations"] = json.dumps(
+            COURSE_DURATION_RULES
+        )
+
+    def clean_username(self):
+        username = (self.cleaned_data.get("username") or "").strip()
+        if not username:
+            raise forms.ValidationError("Enter a username.")
+        taken = User.objects.filter(username__iexact=username)
+        user = getattr(self.instance, "user", None)
+        if getattr(user, "pk", None):
+            taken = taken.exclude(pk=user.pk)
+        if taken.exists():
+            raise forms.ValidationError("That username is already taken.")
+        return username
+
     def clean_year_of_study(self):
         val = self.cleaned_data.get("year_of_study")
         try:
             return int(val)
         except (ValueError, TypeError):
             raise forms.ValidationError("Please provide a valid year.")
+
+    def save(self, commit=True):
+        profile = super().save(commit=commit)
+        username = self.cleaned_data.get("username")
+        user = getattr(profile, "user", None)
+        if user is not None and username and user.username != username:
+            user.username = username
+            if commit:
+                user.save(update_fields=["username"])
+        return profile

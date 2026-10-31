@@ -26,15 +26,17 @@
         </p>
     </button>
     <div id="courses-{{ card_prefix }}-{{ rec.skill_id }}" class="skill-courses" hidden>
-        {% if rec.resources %}
-            <p class="support">Start a course in a new tab, or track it from here.</p>
-            <ul class="resource-list">
-                {% for res in rec.resources %}
-                    {% include "accounts/partials/resource_row.html" with skill_label=rec.skill_name return_view=return_view open_skill=rec.skill_id link_label="Start learning" %}
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty">No courses are available for this skill yet.</p>
-        {% endif %}
+        <div class="skill-courses-body">
+            {% if rec.resources %}
+                <p class="support">Start a course in a new tab, or track it from here.</p>
+                <ul class="resource-list">
+                    {% for res in rec.resources %}
+                        {% include "accounts/partials/resource_row.html" with skill_label=rec.skill_name return_view=return_view open_skill=rec.skill_id link_label="Start learning" %}
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty">No courses are available for this skill yet.</p>
+            {% endif %}
+        </div>
     </div>
 </article>

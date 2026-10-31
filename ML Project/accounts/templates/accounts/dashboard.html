@@ -36,70 +36,113 @@
                     <div class="panel-head">
                         <div>
                             <h2 id="profile-title">Your skill profile</h2>
-                            <p class="support">Profile details and the skill matches used on this dashboard.</p>
+                            <p class="support">{{ completed_count }} of {{ total_resources }} resources finished</p>
                         </div>
                         <a class="link-all" href="{% url 'dashboard' %}#skill-recommendations">View all skills</a>
                     </div>
-                    <div class="profile-split">
-                        <div class="ring" style="--pct: {{ done_pct }};" role="img" aria-label="{{ completed_count }} of {{ total_resources }} resources completed">
-                            <div>
-                                <strong>{{ completed_count }}/{{ total_resources }}</strong>
+                    <div class="profile-match">
+                        {% if recommendations and recommendations.recommended_skills %}
+                            <figure class="ring-chart" role="img" aria-label="Skill matches for your profile">
+                                <div class="ring-visual">
+                                    <svg viewBox="0 0 240 240" aria-hidden="true">
+                                        <g transform="rotate(-90 120 120)">
+                                            <circle class="ring-track" cx="120" cy="120" r="102"/>
+                                            <circle class="ring-track" cx="120" cy="120" r="80"/>
+                                            <circle class="ring-track" cx="120" cy="120" r="58"/>
+                                            <circle class="ring-track" cx="120" cy="120" r="36"/>
+                                            {% for rec in recommendations.recommended_skills|slice:":4" %}
+                                                {% if rec.match_percentage > 0 %}
+                                                <circle
+                                                    class="ring-arc {% if forloop.counter == 1 %}match-a{% elif forloop.counter == 2 %}match-b{% elif forloop.counter == 3 %}match-c{% else %}match-d{% endif %}"
+                                                    cx="120" cy="120"
+                                                    r="{% if forloop.counter == 1 %}102{% elif forloop.counter == 2 %}80{% elif forloop.counter == 3 %}58{% else %}36{% endif %}"
+                                                    pathLength="100"
+                                                    stroke-dasharray="{{ rec.match_percentage }} 100"
+                                                />
+                                                {% endif %}
+                                            {% endfor %}
+                                        </g>
+                                    </svg>
+                                    <div class="ring-center">
+                                        <strong>Skills</strong>
+                                        <small>matched</small>
+                                    </div>
+                                </div>
+                                <ul class="ring-legend">
+                                    {% for rec in recommendations.recommended_skills|slice:":4" %}
+                                        <li class="{% if forloop.counter == 1 %}match-a{% elif forloop.counter == 2 %}match-b{% elif forloop.counter == 3 %}match-c{% else %}match-d{% endif %}">
+                                            <i></i>
+                                            <span>{{ rec.chart_label|default:rec.skill_name }}</span>
+                                            <b>{{ rec.match_percentage }}%</b>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </figure>
+                        {% else %}
+                            <p class="empty">No skill matches yet. Add interests in your profile to generate them.</p>
+                        {% endif %}
+                        <div class="profile-metrics" aria-label="Resource progress">
+                            <div class="metric metric-saved">
+                                <strong>{{ saved_count }}</strong>
+                                <span>Saved</span>
+                            </div>
+                            <div class="metric metric-progress">
+                                <strong>{{ in_progress_count }}</strong>
+                                <span>In progress</span>
+                            </div>
+                            <div class="metric metric-done">
+                                <strong>{{ completed_count }}</strong>
                                 <span>Completed</span>
                             </div>
                         </div>
-                        <div class="profile-columns">
-                            <div class="profile-skills">
-                                {% if recommendations and recommendations.recommended_skills %}
-                                    {% for rec in recommendations.recommended_skills|slice:":5" %}
-                                        <div class="bar-row">
-                                            <span class="bar-name">{{ rec.skill_name }}</span>
-                                            {% if rec.match_percentage > 0 %}
-                                                <span class="bar-value">{{ rec.match_percentage }}% match</span>
-                                                <div class="bar" aria-hidden="true"><span style="width: {{ rec.match_percentage }}%;"></span></div>
-                                            {% else %}
-                                                <span class="bar-value">{{ rec.category }}</span>
-                                            {% endif %}
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="empty">No skill matches yet. Add interests in your profile to generate them.</p>
-                                {% endif %}
+                        <p class="profile-note">Matches stay tied to the profile you edit. Progress stays on your account.</p>
+                    </div>
+                </section>
+
+                <section class="panel" aria-labelledby="student-profile-title">
+                    <div class="panel-head">
+                        <div>
+                            <h2 id="student-profile-title">Your profile</h2>
+                            <p class="support">Name, course, year, interests, and the goal used for skill matches.</p>
+                        </div>
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary">
+                            {% if profile and profile.full_name %}Edit Profile{% else %}Complete Profile{% endif %}
+                        </a>
+                    </div>
+                    {% if profile and profile.full_name %}
+                        <div class="profile-details">
+                            <div class="profile-field">
+                                <p class="profile-label">Full name</p>
+                                <p class="profile-value">{{ profile.full_name }}</p>
                             </div>
-                            <div class="profile-side">
-                                {% if profile and profile.full_name %}
-                                    <div class="profile-field">
-                                        <p class="profile-label">Full name</p>
-                                        <p class="profile-value" title="{{ profile.full_name }}">{{ profile.full_name }}</p>
-                                    </div>
-                                    <div class="profile-field">
-                                        <p class="profile-label">Course / degree</p>
-                                        <p class="profile-value" title="{{ profile.course|default:'Not specified' }}">{{ profile.course|default:"Not specified" }}</p>
-                                    </div>
-                                    <div class="profile-field">
-                                        <p class="profile-label">Year of study</p>
-                                        <p class="profile-value" title="Year {{ profile.year_of_study }}">Year {{ profile.year_of_study }}</p>
-                                    </div>
-                                    <div class="profile-field">
-                                        <p class="profile-label">Interests</p>
-                                        {% if profile.get_interests_list %}
-                                            <div class="tags">
-                                                {% for interest in profile.get_interests_list %}
-                                                    <span class="tag">{{ interest }}</span>
-                                                {% endfor %}
-                                            </div>
-                                        {% else %}
-                                            <p class="profile-value">No specific interests added yet.</p>
-                                        {% endif %}
+                            <div class="profile-field">
+                                <p class="profile-label">Course / degree</p>
+                                <p class="profile-value">{{ profile.course|default:"Not specified" }}</p>
+                            </div>
+                            <div class="profile-field">
+                                <p class="profile-label">Year of study</p>
+                                <p class="profile-value">Year {{ profile.year_of_study }}</p>
+                            </div>
+                            <div class="profile-field profile-field-wide">
+                                <p class="profile-label">First aim</p>
+                                <p class="profile-value">{{ profile.learning_goal|default:"Not specified" }}</p>
+                            </div>
+                            <div class="profile-field profile-field-wide">
+                                <p class="profile-label">Interests</p>
+                                {% if profile.get_interests_list %}
+                                    <div class="tags">
+                                        {% for interest in profile.get_interests_list %}
+                                            <span class="tag">{{ interest }}</span>
+                                        {% endfor %}
                                     </div>
                                 {% else %}
-                                    <p class="empty">You haven't set up your student profile details yet.</p>
+                                    <p class="profile-value">No specific interests added yet.</p>
                                 {% endif %}
-                                <a href="{% url 'edit_profile' %}" class="btn btn-primary profile-edit">
-                                    {% if profile and profile.full_name %}Edit Profile{% else %}Complete Profile{% endif %}
-                                </a>
                             </div>
                         </div>
-                    </div>
+                    {% else %}
+                        <p class="empty">You haven't set up your student profile details yet.</p>
+                    {% endif %}
                 </section>
 
                 <section class="panel" aria-labelledby="path-title">
@@ -263,7 +306,7 @@
         {% endif %}
     </section>
 
-    <section id="skill-recommendations" class="view panel" aria-labelledby="skills-title">
+    <section id="skill-recommendations" class="view recs-view" aria-labelledby="skills-title">
         <div class="panel-head">
             <div>
                 <h1 id="skills-title">AI Skill Recommendations</h1>
@@ -271,7 +314,7 @@
             </div>
         </div>
         {% if recommendations and recommendations.recommended_skills %}
-            <div class="skills-grid">
+            <div class="skill-accordion">
                 {% for rec in recommendations.recommended_skills %}
                     {% include "accounts/partials/skill_card.html" with id_prefix="page" return_view="skill-recommendations" %}
                 {% endfor %}

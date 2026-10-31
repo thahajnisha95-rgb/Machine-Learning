@@ -324,13 +324,14 @@ class MLSkillRecommender:
 
         interests_text = getattr(student_profile, 'interests', '') or ''
         course_text = getattr(student_profile, 'course', '') or ''
+        goal_text = getattr(student_profile, 'learning_goal', '') or ''
         year_of_study = getattr(student_profile, 'year_of_study', 1) or 1
 
-        interest_tokens = clean_and_tokenize(interests_text)
+        interest_tokens = clean_and_tokenize(f"{interests_text} {goal_text}")
         course_tokens = clean_and_tokenize(course_text)
 
         # Student interest query vector
-        query_text = f"{interests_text} {' '.join(interest_tokens)}"
+        query_text = f"{interests_text} {goal_text} {' '.join(interest_tokens)}"
         student_vector = self.vectorizer.transform(query_text)
 
         skills = Skill.objects.all().prefetch_related('resources')

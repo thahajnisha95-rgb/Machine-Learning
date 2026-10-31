@@ -1,10 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — Student Learning System</title>
+    <title>Sign in — Skillmatch</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("learnpath-theme");
+                if (theme === "dark" || theme === "light") {
+                    document.documentElement.setAttribute("data-theme", theme);
+                }
+            } catch (err) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #050505;
+            --surface: #121212;
+            --text: #f4f4f4;
+            --muted: #a8a8a8;
+            --line: #242424;
+            --line-strong: #3a3a3a;
+            --solid: #f4f4f4;
+            --solid-text: #0a0a0a;
+            --solid-hover: #ffffff;
+            --ghost-hover: #171717;
+            --ok-bg: #052e16;
+            --ok-border: #166534;
+            --ok-text: #86efac;
+            --err-bg: #2a1212;
+            --err-border: #7f1d1d;
+            --err-text: #fca5a5;
+            --font: "Outfit", "Segoe UI", system-ui, sans-serif;
+            color-scheme: dark;
+        }
+        [data-theme="light"] {
+            --bg: #f6f6f4;
+            --surface: #ffffff;
+            --text: #111111;
+            --muted: #525252;
+            --line: #e6e6e3;
+            --line-strong: #cfcfc9;
+            --solid: #111111;
+            --solid-text: #fafafa;
+            --solid-hover: #000000;
+            --ghost-hover: #ecece8;
+            --ok-bg: #f0fdf4;
+            --ok-border: #86efac;
+            --ok-text: #166534;
+            --err-bg: #fff3f3;
+            --err-border: #fca5a5;
+            --err-text: #b91c1c;
+            color-scheme: light;
+        }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -12,29 +64,34 @@
             display: grid;
             place-items: center;
             padding: 24px;
-            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-            background: #f5f6f8;
-            color: #0f172a;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            letter-spacing: -0.011em;
         }
         .auth-card {
             width: min(100%, 500px);
             padding: 40px clamp(24px, 7vw, 56px);
-            background: #fff;
-            border: 1px solid #e6e8ee;
+            background: var(--surface);
+            border: 1px solid var(--line);
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.22);
+        }
+        [data-theme="light"] .auth-card {
+            box-shadow: 0 8px 22px rgba(15, 15, 15, 0.07), 0 1px 3px rgba(15, 15, 15, 0.05);
         }
         .form-container { width: 100%; max-width: 432px; margin: 0 auto; }
         .form-title {
             font-size: 1.65rem;
-            font-weight: 700;
-            color: #0f172a;
+            font-weight: 500;
+            letter-spacing: -0.04em;
+            color: var(--text);
             margin-bottom: 8px;
             text-align: center;
         }
         .form-subtitle {
             font-size: .875rem;
-            color: #64748b;
+            color: var(--muted);
             margin-bottom: 28px;
             line-height: 1.5;
             text-align: center;
@@ -42,27 +99,27 @@
         .messages-block { margin-bottom: 16px; }
         .alert {
             padding: 10px 14px;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: .84rem;
             margin-bottom: 8px;
-            background: #f0fdf4;
-            border: 1px solid #86efac;
-            color: #166534;
+            background: var(--ok-bg);
+            border: 1px solid var(--ok-border);
+            color: var(--ok-text);
         }
         .alert-error, .alert-warning {
-            background: #fff3f3;
-            border-color: #fca5a5;
-            color: #b91c1c;
+            background: var(--err-bg);
+            border-color: var(--err-border);
+            color: var(--err-text);
         }
         .non-field-errors, .errorlist { list-style: none; padding: 0; }
         .non-field-errors { margin-bottom: 16px; }
         .non-field-errors li,
         .errorlist li {
             padding: 9px 12px;
-            border-radius: 6px;
-            background: #fff3f3;
-            border: 1px solid #fca5a5;
-            color: #b91c1c;
+            border-radius: 4px;
+            background: var(--err-bg);
+            border: 1px solid var(--err-border);
+            color: var(--err-text);
             font-size: .82rem;
             margin-top: 6px;
         }
@@ -71,7 +128,7 @@
             display: block;
             font-size: .82rem;
             font-weight: 600;
-            color: #334155;
+            color: var(--text);
             margin-bottom: 7px;
         }
         .input-wrap { position: relative; }
@@ -79,36 +136,46 @@
             display: block;
             width: 100%;
             padding: 11px 46px 11px 14px;
-            border: 1.5px solid #e6e8ee;
-            border-radius: 8px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
             font-size: .93rem;
-            color: #0f172a;
-            background: #fff;
+            color: var(--text);
+            background: var(--bg);
             outline: none;
             transition: border-color .2s, box-shadow .2s;
             font-family: inherit;
         }
-        .auth-input::placeholder { color: #94a3b8; font-size: .88rem; }
+        .auth-input::-ms-reveal,
+        .auth-input::-ms-clear {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        .auth-input::placeholder { color: var(--muted); font-size: .88rem; }
         .auth-input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+            border-color: var(--text);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 12%, transparent);
         }
         .auth-input.is-error { border-color: #f87171; }
         .eye-btn {
             position: absolute;
-            right: 12px;
+            right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            display: flex;
-            align-items: center;
-            padding: 4px;
-            color: #64748b;
+            display: grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            color: var(--muted);
             background: transparent;
             border: 0;
             border-radius: 4px;
             cursor: pointer;
         }
-        .eye-btn:hover { color: #4f46e5; }
+        .eye-btn svg { display: block; }
+        .eye-btn .is-off { display: none; }
+        .eye-btn:hover { color: var(--text); }
         .form-row {
             display: flex;
             align-items: center;
@@ -121,41 +188,39 @@
             align-items: center;
             gap: 8px;
             font-size: .84rem;
-            color: #475569;
+            color: var(--muted);
             cursor: pointer;
         }
-        .remember-label input { accent-color: #4f46e5; }
+        .remember-label input { accent-color: var(--text); }
         .forgot-link, .signup-row a {
-            color: #4f46e5;
+            color: var(--text);
             font-size: .84rem;
             font-weight: 600;
             text-decoration: none;
         }
-        .forgot-link:hover, .signup-row a:hover { color: #4338ca; text-decoration: underline; }
+        .forgot-link:hover, .signup-row a:hover { text-decoration: underline; }
         .btn-signin {
             width: 100%;
             padding: 11px;
             border: none;
-            border-radius: 8px;
-            background: #4f46e5;
-            color: #fff;
+            border-radius: 4px;
+            background: var(--solid);
+            color: var(--solid-text);
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background .2s, transform .15s, box-shadow .2s;
-            box-shadow: 0 4px 14px rgba(79,70,229,.22);
+            transition: background .2s, transform .15s;
             font-family: inherit;
         }
         .btn-signin:hover {
-            background: #4338ca;
+            background: var(--solid-hover);
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(79,70,229,.3);
         }
         .signup-row {
             margin-top: 20px;
             text-align: center;
             font-size: .875rem;
-            color: #64748b;
+            color: var(--muted);
         }
         @media (max-width: 480px) {
             body { padding: 12px; }
@@ -171,7 +236,7 @@
     <main class="auth-card">
         <div class="form-container">
             <h1 class="form-title">Welcome back</h1>
-            <p class="form-subtitle">Student Learning System — Sign in to continue your learning journey</p>
+            <p class="form-subtitle">Sign in to continue to Skillmatch.</p>
 
             {% if messages %}
                 <div class="messages-block" role="status">
@@ -189,7 +254,7 @@
                 </ul>
             {% endif %}
 
-            <form method="post" autocomplete="on">
+            <form method="post" autocomplete="on" id="login-form">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ next }}">
 
@@ -209,20 +274,13 @@
                         {{ form.password }}
                         <button type="button" class="eye-btn" id="toggle-password"
                                 aria-label="Show password" aria-pressed="false">
-                            <svg id="eye-show" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                 stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
                                  aria-hidden="true">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
                                 <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            <svg id="eye-hide" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                 aria-hidden="true" hidden>
-                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-                                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-                                <line x1="1" y1="1" x2="23" y2="23"/>
+                                <line id="eye-slash" class="is-off" x1="5" y1="19" x2="19" y2="5"/>
                             </svg>
                         </button>
                     </div>
@@ -250,11 +308,28 @@
     </main>
     <script>
         (function () {
+            function cookieValue(name) {
+                var parts = ("; " + document.cookie).split("; " + name + "=");
+                if (parts.length < 2) return "";
+                return decodeURIComponent(parts.pop().split(";").shift() || "");
+            }
+            function syncCsrf(form) {
+                var token = cookieValue("csrftoken");
+                var input = form && form.querySelector('input[name="csrfmiddlewaretoken"]');
+                if (token && input) input.value = token;
+            }
+            window.addEventListener("pageshow", function (event) {
+                if (event.persisted) window.location.reload();
+            });
+            Array.prototype.forEach.call(document.querySelectorAll("form[method='post'], form[method='POST']"), function (form) {
+                syncCsrf(form);
+                form.addEventListener("submit", function () { syncCsrf(form); });
+            });
+
             var username = document.getElementById("id_username");
             var password = document.getElementById("id_password");
             var toggle = document.getElementById("toggle-password");
-            var showIcon = document.getElementById("eye-show");
-            var hideIcon = document.getElementById("eye-hide");
+            var slash = document.getElementById("eye-slash");
 
             if (username) {
                 username.classList.add("auth-input");
@@ -276,8 +351,7 @@
                     password.type = visible ? "text" : "password";
                     toggle.setAttribute("aria-label", visible ? "Hide password" : "Show password");
                     toggle.setAttribute("aria-pressed", visible ? "true" : "false");
-                    showIcon.hidden = visible;
-                    hideIcon.hidden = !visible;
+                    if (slash) slash.classList.toggle("is-off", !visible);
                 });
             }
         })();

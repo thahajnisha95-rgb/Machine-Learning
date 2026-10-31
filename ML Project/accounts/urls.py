@@ -12,6 +12,7 @@ urlpatterns = [
     path("", views.marketing_home, name="home"),
     path("register/", views.register, name="register"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("welcome/", views.onboarding, name="onboarding"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path("progress/<int:resource_id>/toggle/", views.toggle_resource_progress, name="toggle_resource_progress"),
 
@@ -23,10 +24,9 @@ urlpatterns = [
     # Authentication
     path(
         "login/",
-        auth_views.LoginView.as_view(
+        views.SkillmatchLoginView.as_view(
             template_name="accounts/login.html",
             authentication_form=LoginForm,
-            redirect_authenticated_user=True,
         ),
         name="login",
     ),

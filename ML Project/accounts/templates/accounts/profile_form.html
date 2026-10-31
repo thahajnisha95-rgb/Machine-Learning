@@ -3,49 +3,100 @@
 {% block title %}Edit Student Profile{% endblock %}
 {% block page_id %}profile{% endblock %}
 {% block top_heading %}
-    {% include "accounts/partials/topnav.html" with crumb="My Profile" page_title="My Profile" %}
+    {% include "accounts/partials/topnav.html" with crumb="My Profile" page_title="My Profile" profile_save=True %}
 {% endblock %}
 
 {% block content %}
-    <section class="panel profile-form" aria-labelledby="edit-profile-title">
-        <div class="panel-head">
-            <div>
+    <form method="post" id="student-profile-form" class="record-sheet" aria-labelledby="edit-profile-title">
+        {% csrf_token %}
+        <div class="record-layout">
+            <div class="record-main">
                 <h1 id="edit-profile-title">Student Profile</h1>
                 <p class="support">Complete your profile to receive personalized skill and course recommendations.</p>
-            </div>
-        </div>
 
-        <div class="tip">
-            <strong>Tip:</strong> Be specific with your interests (for example, Python, Machine Learning, Data Science, Web Development) so the recommendation engine can match relevant courses and resources.
-        </div>
+                <nav class="record-tabs" aria-label="Profile sections">
+                    <a class="record-tab is-active" href="#profile-details" aria-current="true">Details</a>
+                    <a class="record-tab" href="#profile-interests">Interests</a>
+                </nav>
 
-        <form method="post">
-            {% csrf_token %}
-            <datalist id="course-options">
-                {% for course_option in form.course_options %}
-                    <option value="{{ course_option }}">
-                {% endfor %}
-            </datalist>
-            {% for field in form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                        <div class="help-text">{{ field.help_text }}</div>
-                    {% endif %}
-                    {% if field.errors %}
-                        <ul class="errorlist">
-                            {% for error in field.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
+                {% if form.non_field_errors %}
+                    <ul class="errorlist">
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <datalist id="course-options">
+                    {% for course_option in form.course_options %}
+                        <option value="{{ course_option }}">
+                    {% endfor %}
+                </datalist>
+                <div id="profile-details" class="record-grid">
+                    <div class="form-group">
+                        <label for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}{% if form.full_name.field.required %}<abbr class="req" title="required">*</abbr>{% endif %}</label>
+                        {{ form.full_name }}
+                        {% if form.full_name.help_text %}<div class="help-text">{{ form.full_name.help_text }}</div>{% endif %}
+                        {% if form.full_name.errors %}
+                            <ul class="errorlist">{% for error in form.full_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}{% if form.username.field.required %}<abbr class="req" title="required">*</abbr>{% endif %}</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <ul class="errorlist">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.course.id_for_label }}">{{ form.course.label }}{% if form.course.field.required %}<abbr class="req" title="required">*</abbr>{% endif %}</label>
+                        {{ form.course }}
+                        {% if form.course.help_text %}<div class="help-text">{{ form.course.help_text }}</div>{% endif %}
+                        {% if form.course.errors %}
+                            <ul class="errorlist">{% for error in form.course.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.year_of_study.id_for_label }}">{{ form.year_of_study.label }}{% if form.year_of_study.field.required %}<abbr class="req" title="required">*</abbr>{% endif %}</label>
+                        {{ form.year_of_study }}
+                        {% if form.year_of_study.help_text %}<div class="help-text">{{ form.year_of_study.help_text }}</div>{% endif %}
+                        {% if form.year_of_study.errors %}
+                            <ul class="errorlist">{% for error in form.year_of_study.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
                 </div>
-            {% endfor %}
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-submit">Save Student Profile</button>
-                <a href="{% url 'dashboard' %}" class="link-quiet">Cancel and return to Dashboard</a>
+
+                <section id="profile-interests" class="record-section">
+                    <div class="record-section-head">
+                        <h2><label for="{{ form.interests.id_for_label }}">{{ form.interests.label }}</label></h2>
+                    </div>
+                    {{ form.interests }}
+                    {% if form.interests.help_text %}<div class="help-text">{{ form.interests.help_text }}</div>{% endif %}
+                    {% if form.interests.errors %}
+                        <ul class="errorlist">{% for error in form.interests.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <p class="record-note"><strong>Tip:</strong> Be specific with your interests (for example, Python, Machine Learning, Data Science, Web Development) so the recommendation engine can match relevant courses and resources.</p>
+                </section>
+
+                <p class="record-cancel"><a href="{% url 'dashboard' %}" class="link-quiet">Cancel and return to Dashboard</a></p>
             </div>
-        </form>
-    </section>
+
+            <aside class="record-rail" aria-label="Profile summary">
+                <div class="record-avatar" aria-hidden="true">{{ display_name|slice:":2"|upper }}</div>
+                <p class="record-name">{{ profile.full_name|default:request.user.username }}</p>
+                {% if profile.course %}
+                    <p class="record-sub">{{ profile.course }}</p>
+                {% endif %}
+                <nav class="record-links" aria-label="Related pages">
+                    <a href="{% url 'dashboard' %}"><svg class="icon" aria-hidden="true"><use href="#i-dashboard"></use></svg> Dashboard</a>
+                    <a href="{% url 'dashboard' %}#skill-recommendations"><svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg> Skill recommendations</a>
+                    <a href="{% url 'dashboard' %}#learning-resources"><svg class="icon" aria-hidden="true"><use href="#i-library"></use></svg> Learning resources</a>
+                    <a href="{% url 'dashboard' %}#learning-progress"><svg class="icon" aria-hidden="true"><use href="#i-trend"></use></svg> Learning progress</a>
+                </nav>
+                <div class="record-meta">
+                    <p><span>Signed in as</span> {{ request.user.username }}</p>
+                    <p><span>Joined</span> {{ request.user.date_joined|date:"M j, Y" }}</p>
+                </div>
+            </aside>
+        </div>
+    </form>
 {% endblock %}

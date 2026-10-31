@@ -40,5 +40,8 @@
                 <a href="{% url 'logout' %}"><svg class="icon" aria-hidden="true"><use href="#i-logout"></use></svg> Log out</a>
             </div>
         </details>
+        {% if profile_save %}
+            <button type="submit" form="student-profile-form" class="btn btn-save">Save</button>
+        {% endif %}
     </div>
 </header>

@@ -25,6 +25,7 @@ class AccessPermissionTests(TestCase):
             course="Computer Science",
             year_of_study=2,
             interests="Python, Django",
+            onboarding_complete=True,
         )
 
     def test_home_is_public_marketing_page(self):
@@ -136,6 +137,7 @@ class StudentProfileTests(TestCase):
     def test_profile_form_validation(self):
         form_data = {
             "full_name": "Jane Smith",
+            "username": "jane_smith",
             "course": "BCA Data Science",
             "year_of_study": 2,
             "interests": "Python, SQL, Tableau",
@@ -182,6 +184,7 @@ class StudentProfileTests(TestCase):
 
         post_data = {
             "full_name": "John Doe Updated",
+            "username": "john_updated",
             "course": "M.Sc AI & Robotics",
             "year_of_study": 2,
             "interests": "Robotics, ROS, Python",
@@ -190,7 +193,9 @@ class StudentProfileTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         profile = StudentProfile.objects.get(user=self.user)
+        self.user.refresh_from_db()
         self.assertEqual(profile.full_name, "John Doe Updated")
+        self.assertEqual(self.user.username, "john_updated")
         self.assertEqual(profile.course, "M.Sc AI & Robotics")
         self.assertEqual(profile.year_of_study, 2)
         self.assertIn("Robotics", profile.interests)
@@ -207,6 +212,7 @@ class LearningResourceAndProgressTests(TestCase):
             course="Information Technology",
             year_of_study=2,
             interests="Cloud, DevOps",
+            onboarding_complete=True,
         )
         self.skill = Skill.objects.create(
             name="Cloud Computing",
@@ -271,6 +277,7 @@ class JSONAPITests(TestCase):
             course="Computer Engineering",
             year_of_study=3,
             interests="Python, Machine Learning",
+            onboarding_complete=True,
         )
         self.skill = Skill.objects.create(
             name="Machine Learning",
@@ -355,3 +362,213 @@ class TFIDFEngineAndMLTests(TestCase):
     def test_train_recommender_command(self):
         # Should execute successfully without error
         call_command("train_recommender")
+
+
+class OnboardingSurveyTests(TestCase):
+    """New students complete a one-question survey before the dashboard opens."""
+
+    def setUp(self):
+        self.python = Skill.objects.create(
+            name="Python Programming",
+            category="Programming Languages",
+            keywords="python",
+            description="Python for coursework and backend projects.",
+        )
+        self.ml = Skill.objects.create(
+            name="Machine Learning",
+            category="Artificial Intelligence",
+            keywords="machine learning, ml",
+            description="Supervised and unsupervised learning from data.",
+        )
+        LearningResource.objects.create(
+            skill=self.python,
+            title="CS50 Python",
+            url="https://example.com/cs50-python",
+            platform="edX",
+            resource_type="course",
+            difficulty="beginner",
+        )
+        LearningResource.objects.create(
+            skill=self.ml,
+            title="Andrew Ng Machine Learning",
+            url="https://example.com/ml-course",
+            platform="Coursera",
+            resource_type="course",
+            difficulty="beginner",
+        )
+
+    def _make_incomplete_user(self, username="newstudent"):
+        user = User.objects.create_user(username=username, password="Survey@123")
+        StudentProfile.objects.create(
+            user=user,
+            full_name=username,
+            course="",
+            year_of_study=1,
+            interests="",
+        )
+        return user
+
+    def test_profile_without_course_or_interests_needs_onboarding(self):
+        user = self._make_incomplete_user()
+        self.assertTrue(user.studentprofile.needs_onboarding())
+
+    def test_complete_profile_skips_onboarding(self):
+        user = User.objects.create_user(username="complete1", password="Survey@123")
+        StudentProfile.objects.create(
+            user=user,
+            full_name="Rasheeda Complete",
+            course="Btech computer science",
+            year_of_study=4,
+            interests="Java, python, HTML, CSS, Bootstrap, react, Nextjs",
+            onboarding_complete=True,
+        )
+        self.client.login(username="complete1", password="Survey@123")
+
+        welcome = self.client.get(reverse("onboarding"))
+        self.assertRedirects(welcome, reverse("dashboard"))
+
+        dashboard = self.client.get(reverse("dashboard"))
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertContains(dashboard, "Rasheeda Complete")
+
+    def test_filled_profile_still_sees_survey_until_it_is_finished(self):
+        user = User.objects.create_user(username="filledusr1", password="Survey@123")
+        StudentProfile.objects.create(
+            user=user,
+            full_name="Rasheeda",
+            course="Btech computer science",
+            year_of_study=4,
+            interests="Java, python, HTML",
+            onboarding_complete=False,
+        )
+        response = self.client.post(reverse("login"), {
+            "username": "filledusr1",
+            "password": "Survey@123",
+        })
+        self.assertRedirects(response, reverse("onboarding"))
+        survey = self.client.get(reverse("onboarding"))
+        self.assertContains(survey, "May we start with the name you like to be called?")
+        self.assertContains(survey, "e.g. Alex Johnson")
+        self.assertNotContains(survey, "Rasheeda")
+        self.assertNotContains(survey, 'value="Rasheeda"')
+
+    def test_login_sends_incomplete_profile_to_survey_not_dashboard(self):
+        self._make_incomplete_user("surveyusr1")
+        response = self.client.post(reverse("login"), {
+            "username": "surveyusr1",
+            "password": "Survey@123",
+        })
+        self.assertRedirects(response, reverse("onboarding"))
+
+    def test_dashboard_and_recommendation_api_are_blocked_until_survey_is_done(self):
+        user = self._make_incomplete_user()
+        self.client.force_login(user)
+
+        self.assertRedirects(self.client.get(reverse("dashboard")), reverse("onboarding"))
+        self.assertRedirects(self.client.get(reverse("api_recommendations")), reverse("onboarding"))
+
+    def test_survey_shows_one_question_and_ignores_skipped_steps(self):
+        user = self._make_incomplete_user()
+        self.client.force_login(user)
+
+        first = self.client.get(reverse("onboarding"))
+        self.assertEqual(first.status_code, 200)
+        self.assertContains(first, "May we start with the name you like to be called?")
+        self.assertNotContains(first, "What are you studying at the moment?")
+        self.assertNotContains(first, "Which skills would you like us to match for you?")
+        self.assertContains(first, "1 of 5")
+
+        skipped = self.client.get(reverse("onboarding") + "?step=4")
+        self.assertContains(skipped, "May we start with the name you like to be called?")
+        self.assertNotContains(skipped, "Which skills would you like us to match for you?")
+
+    def test_survey_then_dashboard_matches_selected_interests(self):
+        user = self._make_incomplete_user("matchusr01")
+        self.client.force_login(user)
+
+        name = self.client.post(reverse("onboarding"), {
+            "step": "1",
+            "action": "next",
+            "full_name": "Amina Patel",
+        })
+        self.assertRedirects(name, reverse("onboarding") + "?step=2")
+
+        course_page = self.client.get(reverse("onboarding") + "?step=2")
+        self.assertContains(course_page, "What are you studying at the moment?")
+        self.assertNotContains(course_page, "May we start with the name you like to be called?")
+
+        course = self.client.post(reverse("onboarding") + "?step=2", {
+            "step": "2",
+            "action": "next",
+            "course": "B.Tech Computer Science",
+        })
+        self.assertRedirects(course, reverse("onboarding") + "?step=3")
+
+        year = self.client.post(reverse("onboarding") + "?step=3", {
+            "step": "3",
+            "action": "next",
+            "year_of_study": "2",
+        })
+        self.assertRedirects(year, reverse("onboarding") + "?step=4")
+
+        interests_page = self.client.get(reverse("onboarding") + "?step=4")
+        self.assertContains(interests_page, "Which skills would you like us to match for you?")
+        self.assertNotContains(interests_page, "How far along are you in that course?")
+
+        empty_interests = self.client.post(reverse("onboarding") + "?step=4", {
+            "step": "4",
+            "action": "next",
+        })
+        self.assertEqual(empty_interests.status_code, 200)
+        self.assertContains(empty_interests, "Please pick at least one interest")
+
+        interests = self.client.post(reverse("onboarding") + "?step=4", {
+            "step": "4",
+            "action": "next",
+            "interest": ["Python", "Machine Learning"],
+        })
+        self.assertRedirects(interests, reverse("onboarding") + "?step=5")
+
+        goal_page = self.client.get(reverse("onboarding") + "?step=5")
+        self.assertContains(goal_page, "What would you like help with first?")
+        self.assertContains(goal_page, "5 of 5")
+        self.assertNotContains(goal_page, "Which skills would you like us to match for you?")
+
+        goal = self.client.post(reverse("onboarding") + "?step=5", {
+            "step": "5",
+            "action": "next",
+            "learning_goal": "Explore AI, data, and machine learning",
+        })
+        self.assertRedirects(goal, reverse("onboarding") + "?step=6")
+
+        ready = self.client.get(reverse("onboarding") + "?step=6")
+        self.assertContains(ready, "Thank you, Amina Patel.")
+        self.assertContains(ready, "Open my dashboard")
+        self.assertNotContains(ready, "May we start with the name you like to be called?")
+
+        opened = self.client.post(reverse("onboarding"), {
+            "step": "6",
+            "action": "open_app",
+        })
+        self.assertRedirects(opened, reverse("dashboard"))
+
+        profile = StudentProfile.objects.get(user=user)
+        self.assertEqual(profile.full_name, "Amina Patel")
+        self.assertEqual(profile.course, "B.Tech Computer Science")
+        self.assertEqual(profile.year_of_study, 2)
+        self.assertIn("Python", profile.interests)
+        self.assertIn("Machine Learning", profile.interests)
+        self.assertEqual(profile.learning_goal, "Explore AI, data, and machine learning")
+        self.assertTrue(profile.onboarding_complete)
+        self.assertFalse(profile.needs_onboarding())
+
+        dashboard = self.client.get(reverse("dashboard"))
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertContains(dashboard, "Amina Patel")
+        self.assertContains(dashboard, "B.Tech Computer Science")
+        recommended_names = [
+            rec.skill_name for rec in dashboard.context["recommendations"]["recommended_skills"]
+        ]
+        self.assertTrue(recommended_names)
+        self.assertIn(recommended_names[0], {"Python Programming", "Machine Learning"})
+

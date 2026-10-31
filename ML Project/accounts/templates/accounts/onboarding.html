@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if is_ready %}You are ready{% else %}{{ step_meta.title }}{% endif %} — Skillmatch</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("learnpath-theme");
+                if (theme === "dark" || theme === "light") {
+                    document.documentElement.setAttribute("data-theme", theme);
+                }
+            } catch (err) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'accounts/onboarding.css' %}?v=20261031-2">
+</head>
+<body>
+    <header class="survey-top">
+        <a class="survey-brand" href="{% url 'home' %}">Skillmatch</a>
+        <a class="survey-quiet" href="{% url 'logout' %}">Sign out</a>
+    </header>
+
+    <main class="survey-shell">
+        {% if messages %}
+            <div class="survey-messages" role="status">
+                {% for message in messages %}
+                    <p class="survey-error">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if is_ready %}
+            <section class="survey-card survey-ready" aria-labelledby="ready-title">
+                <p class="survey-kicker">All set</p>
+                <h1 id="ready-title">Thank you, {{ profile.full_name }}.</h1>
+                <p class="survey-help">We have matched skills and courses to {{ profile.course }}, your interests, and what you would like help with first. Your dashboard is ready when you are.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="step" value="6">
+                    <button type="submit" name="action" value="open_app" class="survey-next">Open my dashboard</button>
+                </form>
+            </section>
+        {% else %}
+            <section class="survey-card" aria-labelledby="survey-title">
+                <div class="survey-progress" aria-label="Question {{ step }} of {{ total_questions }}">
+                    {% for tick in progress_ticks %}
+                        <span class="survey-dot{% if tick < step %} is-done{% elif tick == step %} is-current{% endif %}"></span>
+                    {% endfor %}
+                    <p class="survey-count">{{ step }} of {{ total_questions }}</p>
+                </div>
+                <p class="survey-kicker">{{ step_meta.kicker }}</p>
+                <h1 id="survey-title">{{ step_meta.title }}</h1>
+                <p class="survey-help">{{ step_meta.help }}</p>
+                <p class="survey-error" id="survey-error" role="alert"{% if not error %} hidden{% endif %}>{{ error }}</p>
+
+                <form method="post" class="survey-form" id="survey-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="step" value="{{ step }}">
+
+                    {% if step_meta.key == "name" %}
+                        <label class="survey-label" for="full_name">Your name</label>
+                        <input class="survey-input" type="text" id="full_name" name="full_name" maxlength="100" autocomplete="off" required autofocus value="{{ posted.full_name }}" placeholder="e.g. Alex Johnson">
+                    {% elif step_meta.key == "course" %}
+                        <label class="survey-label" for="course">Course or degree</label>
+                        <input class="survey-input" type="text" id="course" name="course" maxlength="100" autocomplete="off" required autofocus value="{{ posted.course }}" placeholder="e.g. B.Tech Computer Science">
+                        <div class="survey-hints" role="group" aria-label="Course suggestions">
+                            {% for hint in course_hints %}
+                                <button type="button" class="survey-chip" data-fill="course" data-value="{{ hint }}">{{ hint }}</button>
+                            {% endfor %}
+                        </div>
+                    {% elif step_meta.key == "year" %}
+                        <fieldset class="survey-years">
+                            <legend class="survey-label">Year of study</legend>
+                            {% for value, label in year_choices %}
+                                <label class="survey-year">
+                                    <input type="radio" name="year_of_study" value="{{ value }}"{% if posted.year == value|stringformat:"s" %} checked{% endif %} required>
+                                    <span>{{ label }}</span>
+                                </label>
+                            {% endfor %}
+                        </fieldset>
+                    {% elif step_meta.key == "interests" %}
+                        <fieldset class="survey-interests">
+                            <legend class="survey-label">Interests</legend>
+                            <div class="survey-chips">
+                                {% for option in interest_options %}
+                                    <label class="survey-chip-check">
+                                        <input type="checkbox" name="interest" value="{{ option }}"{% if option|lower in posted.interests %} checked{% endif %}>
+                                        <span>{{ option }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <label class="survey-label extra" for="interest_extra">Anything else we should include?</label>
+                            <input class="survey-input" type="text" id="interest_extra" name="interest_extra" maxlength="200" autocomplete="off" value="{{ posted.interest_extra }}" placeholder="e.g. SQL, React">
+                        </fieldset>
+                    {% elif step_meta.key == "goal" %}
+                        <fieldset class="survey-years">
+                            <legend class="survey-label">Your first aim</legend>
+                            {% for option in goal_choices %}
+                                <label class="survey-year">
+                                    <input type="radio" name="learning_goal" value="{{ option }}"{% if posted.goal == option %} checked{% endif %} required>
+                                    <span>{{ option }}</span>
+                                </label>
+                            {% endfor %}
+                        </fieldset>
+                    {% endif %}
+
+                    <div class="survey-actions">
+                        {% if step > 1 %}
+                            <button type="submit" name="action" value="back" class="survey-back" formnovalidate>Back</button>
+                        {% else %}
+                            <span></span>
+                        {% endif %}
+                        <button type="submit" name="action" value="next" class="survey-next">Continue</button>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+    </main>
+    <script src="{% static 'accounts/onboarding.js' %}?v=20261030-2"></script>
+</body>
+</html>

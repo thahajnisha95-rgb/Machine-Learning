@@ -1,10 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account — Student Learning System</title>
+    <title>Create account — Skillmatch</title>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("learnpath-theme");
+                if (theme === "dark" || theme === "light") {
+                    document.documentElement.setAttribute("data-theme", theme);
+                }
+            } catch (err) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #050505;
+            --surface: #121212;
+            --text: #f4f4f4;
+            --muted: #a8a8a8;
+            --line: #242424;
+            --solid: #f4f4f4;
+            --solid-text: #0a0a0a;
+            --solid-hover: #ffffff;
+            --ok-bg: #052e16;
+            --ok-border: #166534;
+            --ok-text: #86efac;
+            --err-bg: #2a1212;
+            --err-border: #7f1d1d;
+            --err-text: #fca5a5;
+            --font: "Outfit", "Segoe UI", system-ui, sans-serif;
+            color-scheme: dark;
+        }
+        [data-theme="light"] {
+            --bg: #f6f6f4;
+            --surface: #ffffff;
+            --text: #111111;
+            --muted: #525252;
+            --line: #e6e6e3;
+            --solid: #111111;
+            --solid-text: #fafafa;
+            --solid-hover: #000000;
+            --ok-bg: #f0fdf4;
+            --ok-border: #86efac;
+            --ok-text: #16a34a;
+            --err-bg: #fff3f3;
+            --err-border: #fca5a5;
+            --err-text: #dc2626;
+            color-scheme: light;
+        }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -12,29 +60,35 @@
             display: grid;
             place-items: center;
             padding: 24px;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f5f6f8;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            letter-spacing: -0.011em;
         }
 
         .right-panel {
             width: min(100%, 500px);
             padding: 40px clamp(24px, 7vw, 56px);
-            background: #fff;
-            border: 1px solid #e6e8ee;
+            background: var(--surface);
+            border: 1px solid var(--line);
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.22);
+        }
+        [data-theme="light"] .right-panel {
+            box-shadow: 0 8px 22px rgba(15, 15, 15, 0.07), 0 1px 3px rgba(15, 15, 15, 0.05);
         }
         .form-container { width: 100%; max-width: 432px; }
         .form-title {
             font-size: 1.65rem;
-            font-weight: 700;
-            color: #0f172a;
+            font-weight: 500;
+            letter-spacing: -0.04em;
+            color: var(--text);
             margin-bottom: 8px;
             text-align: center;
         }
         .form-subtitle {
             font-size: .875rem;
-            color: #64748b;
+            color: var(--muted);
             margin-bottom: 28px;
             line-height: 1.5;
             text-align: center;
@@ -42,12 +96,12 @@
         .messages-block { margin-bottom: 16px; }
         .alert {
             padding: 10px 14px;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: .84rem;
             margin-bottom: 8px;
-            background: #f0fdf4;
-            border: 1px solid #86efac;
-            color: #16a34a;
+            background: var(--ok-bg);
+            border: 1px solid var(--ok-border);
+            color: var(--ok-text);
         }
         .form-errors {
             list-style: none;
@@ -56,10 +110,10 @@
         .form-errors li,
         .errorlist li {
             padding: 9px 12px;
-            border-radius: 6px;
-            background: #fff3f3;
-            border: 1px solid #fca5a5;
-            color: #dc2626;
+            border-radius: 4px;
+            background: var(--err-bg);
+            border: 1px solid var(--err-border);
+            color: var(--err-text);
             font-size: .82rem;
             margin-bottom: 6px;
         }
@@ -68,29 +122,29 @@
             display: block;
             font-size: .82rem;
             font-weight: 600;
-            color: #374151;
+            color: var(--text);
             margin-bottom: 7px;
         }
         .auth-input {
             width: 100%;
             padding: 11px 14px;
-            border: 1.5px solid #d9dcde;
-            border-radius: 6px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
             font-size: .93rem;
-            color: #0f172a;
-            background: #fff;
+            color: var(--text);
+            background: var(--bg);
             outline: none;
             transition: border-color .22s, box-shadow .22s;
             font-family: inherit;
         }
-        .auth-input::placeholder { color: #94a3b8; font-size: .88rem; }
+        .auth-input::placeholder { color: var(--muted); font-size: .88rem; }
         .auth-input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+            border-color: var(--text);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 12%, transparent);
         }
         .help-text {
             margin-top: 6px;
-            color: #64748b;
+            color: var(--muted);
             font-size: .78rem;
             line-height: 1.45;
         }
@@ -100,35 +154,33 @@
             width: 100%;
             padding: 11px;
             border: none;
-            border-radius: 6px;
-            background: #4f46e5;
-            color: #fff;
+            border-radius: 4px;
+            background: var(--solid);
+            color: var(--solid-text);
             font-size: 1rem;
             font-weight: 600;
             letter-spacing: .3px;
             cursor: pointer;
-            transition: background .22s, transform .15s, box-shadow .22s;
-            box-shadow: 0 4px 14px rgba(79,70,229,.22);
+            transition: background .22s, transform .15s;
             font-family: inherit;
         }
         .btn-register:hover {
-            background: #4338ca;
+            background: var(--solid-hover);
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(79,70,229,.3);
         }
         .signin-row {
             margin-top: 20px;
             text-align: center;
             font-size: .875rem;
-            color: #64748b;
+            color: var(--muted);
         }
         .signin-row a {
-            color: #4f46e5;
+            color: var(--text);
             font-weight: 600;
             text-decoration: none;
             border-bottom: 1px solid transparent;
         }
-        .signin-row a:hover { color: #4338ca; }
+        .signin-row a:hover { text-decoration: underline; }
 
         @media (max-width: 480px) {
             body { padding: 12px; }
@@ -144,7 +196,7 @@
     <main class="right-panel">
         <div class="form-container">
             <h1 class="form-title">Create your account</h1>
-            <p class="form-subtitle">Student Learning System — Start your learning journey</p>
+            <p class="form-subtitle">Create an account to start matching skills to your course.</p>
 
             {% if messages %}
                 <div class="messages-block" role="status">
@@ -187,5 +239,26 @@
             <p class="signin-row"><a href="{% url 'home' %}">Back to Skillmatch</a></p>
         </div>
     </main>
+    <script>
+        (function () {
+            function cookieValue(name) {
+                var parts = ("; " + document.cookie).split("; " + name + "=");
+                if (parts.length < 2) return "";
+                return decodeURIComponent(parts.pop().split(";").shift() || "");
+            }
+            function syncCsrf(form) {
+                var token = cookieValue("csrftoken");
+                var input = form && form.querySelector('input[name="csrfmiddlewaretoken"]');
+                if (token && input) input.value = token;
+            }
+            window.addEventListener("pageshow", function (event) {
+                if (event.persisted) window.location.reload();
+            });
+            Array.prototype.forEach.call(document.querySelectorAll("form[method='post'], form[method='POST']"), function (form) {
+                syncCsrf(form);
+                form.addEventListener("submit", function () { syncCsrf(form); });
+            });
+        })();
+    </script>
 </body>
 </html>
