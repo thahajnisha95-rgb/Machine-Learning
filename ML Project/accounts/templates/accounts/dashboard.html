@@ -268,10 +268,7 @@
                             <svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg>
                             Update profile
                         </a>
-                        <a href="{% url 'api_recommendations' %}" target="_blank" rel="noopener noreferrer">
-                            <svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg>
-                            Recommendations API
-                        </a>
+
                     </div>
                 </section>
             </aside>
@@ -310,7 +307,7 @@
         <div class="panel-head">
             <div>
                 <h1 id="skills-title">AI Skill Recommendations</h1>
-                <p class="support">{{ recommendations.engine_version|default:"ML TF-IDF Model" }}. Personalized skill match powered by TF-IDF vectorization, cosine similarity, and academic year alignment.</p>
+                <p class="support">Skills matched to your course, year, and interests.</p>
             </div>
         </div>
         {% if recommendations and recommendations.recommended_skills %}

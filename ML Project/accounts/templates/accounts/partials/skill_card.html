@@ -1,29 +1,15 @@
 {% firstof id_prefix "skill" as card_prefix %}
 <article class="skill-card">
     <button type="button" class="skill-toggle" data-skill="{{ rec.skill_id }}" aria-expanded="false" aria-controls="courses-{{ card_prefix }}-{{ rec.skill_id }}" aria-label="Show courses for {{ rec.skill_name }}">
-        <div class="skill-top">
-            <div>
-                {% if rec.category %}
-                    <p class="eyebrow">{{ rec.category }}</p>
-                {% endif %}
+        <div class="skill-row">
+            <div class="skill-info">
                 <h3 class="skill-name">{{ rec.skill_name }}</h3>
+                <p class="skill-desc">{{ rec.description|default:"Essential industry and research skill." }}</p>
             </div>
-            {% if rec.match_percentage > 0 %}
-                <span class="match">{{ rec.match_percentage }}% match</span>
-            {% endif %}
-        </div>
-        {% for reason in rec.match_reasons %}
-            <p class="reason">{{ reason }}</p>
-        {% endfor %}
-        <p class="skill-desc">{{ rec.description|default:"Essential industry and research skill." }}</p>
-        <p class="material-count">
-            <span>{{ rec.resources|length }} learning material{{ rec.resources|length|pluralize }}</span>
-            <span class="learn-hint">
-                <span class="learn-open">Learn</span>
-                <span class="learn-close">Hide courses</span>
+            <span class="skill-chevron-wrap" aria-hidden="true">
                 <svg class="icon skill-chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
             </span>
-        </p>
+        </div>
     </button>
     <div id="courses-{{ card_prefix }}-{{ rec.skill_id }}" class="skill-courses" hidden>
         <div class="skill-courses-body">

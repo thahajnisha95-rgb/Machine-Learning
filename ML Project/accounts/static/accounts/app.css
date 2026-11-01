@@ -831,43 +831,59 @@ html[data-view="learning-progress"] #learning-progress {
 
 .skills-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
 }
 
 .skill-card {
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 12px;
     background: var(--surface);
-    box-shadow: var(--shadow);
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
     display: flex;
     flex-direction: column;
-    min-height: 100%;
     min-width: 0;
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.skill-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-.skill-name { margin: 2px 0 0; font-size: 14px; letter-spacing: -0.01em; }
-.eyebrow { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
-.match { font-size: 11px; font-weight: 700; color: var(--accent); white-space: nowrap; }
-.reason { margin: 8px 0 0; color: var(--accent); font-size: 12px; font-weight: 600; }
-.skill-desc {
-    margin: 8px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+/* Minimal skill card layout */
+.skill-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
-.material-count { margin: 10px 0 0; font-size: 12px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.skill-info { flex: 1; min-width: 0; }
+.skill-name {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.skill-desc {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.skill-chevron-wrap {
+    flex: 0 0 auto;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+}
 
 .skill-toggle {
     display: block;
     width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 12px 14px;
     border: 0;
     background: transparent;
     color: inherit;
@@ -876,11 +892,11 @@ html[data-view="learning-progress"] #learning-progress {
     cursor: pointer;
 }
 
-.skill-card:hover { border-color: var(--accent-line); box-shadow: var(--shadow-pop); }
+.skill-card:hover { border-color: var(--accent-line); box-shadow: 0 2px 8px rgba(0,0,0,.10); }
 .skill-accordion {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .skill-accordion .skill-card {
@@ -890,7 +906,7 @@ html[data-view="learning-progress"] #learning-progress {
 }
 
 .skill-accordion .skill-toggle {
-    padding: 16px 18px;
+    padding: 12px 14px;
 }
 
 .skill-accordion .skill-courses {
@@ -916,20 +932,9 @@ html[data-view="learning-progress"] #learning-progress {
     box-shadow: var(--shadow-pop);
 }
 
-.learn-hint {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--accent);
-    white-space: nowrap;
-}
-
-.learn-close { display: none; }
-.skill-card.is-open .learn-open { display: none; }
-.skill-card.is-open .learn-close { display: inline; }
-.skill-chevron { transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
+.skill-chevron { transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
 .skill-card.is-open .skill-chevron { transform: rotate(180deg); }
+.skill-card.is-open { border-color: var(--accent-line); }
 
 .skill-courses {
     margin-top: 12px;
@@ -1808,7 +1813,7 @@ html[data-view="learning-progress"] #learning-progress {
 }
 
 .recs-view .skill-accordion {
-    gap: 12px;
+    gap: 8px;
 }
 
 /* sidebar-collapsed media block removed — hover-expand now handles this */
