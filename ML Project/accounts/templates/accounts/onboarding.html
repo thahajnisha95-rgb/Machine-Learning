@@ -23,7 +23,10 @@
 <body>
     <header class="survey-top">
         <a class="survey-brand" href="{% url 'home' %}">Skillmatch</a>
-        <a class="survey-quiet" href="{% url 'logout' %}">Sign out</a>
+        <form method="post" action="{% url 'logout' %}" class="survey-logout-form">
+            {% csrf_token %}
+            <button type="submit" class="survey-quiet">Sign out</button>
+        </form>
     </header>
 
     <main class="survey-shell">

@@ -55,7 +55,7 @@ class AccessPermissionTests(TestCase):
         self.assertContains(response, "Student One")
         self.assertContains(response, "Computer Science")
 
-    def test_dashboard_lists_all_active_resources_and_only_breadcrumb_heading(self):
+    def test_dashboard_previews_resources_and_keeps_all_resources_in_library(self):
         python = Skill.objects.create(
             name="Python Programming",
             category="Programming Languages",
@@ -95,15 +95,23 @@ class AccessPermissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context["learning_resources"]), 6)
         self.assertContains(response, 'class="preview-row"', count=6)
+        self.assertContains(response, 'class="panel dash-wide"', count=2)
+        self.assertLess(
+            response.content.index(b'aria-labelledby="side-skills-title"'),
+            response.content.index(b'aria-labelledby="path-title"'),
+        )
         self.assertContains(response, "Python Course")
         self.assertContains(response, "Machine Learning Course")
         self.assertContains(response, "Additional Python Resource 4")
+        self.assertContains(
+            response,
+            f'href="{reverse("dashboard")}#learning-resources" aria-label="View all learning resources"',
+        )
         self.assertContains(response, 'data-category="Artificial Intelligence"')
         self.assertNotContains(response, "Inactive Course")
         self.assertContains(response, '<li id="crumb-current" aria-current="page">Dashboard</li>')
         self.assertNotContains(response, 'id="page-title"')
-        self.assertContains(response, 'id="sidebar-collapse"')
-        self.assertNotContains(response, '<span class="nav-label">Collapse sidebar</span>')
+        self.assertContains(response, 'id="app-sidebar"')
 
     def test_authenticated_edit_profile_access(self):
         self.client.login(username="student1", password="password123")
@@ -571,4 +579,3 @@ class OnboardingSurveyTests(TestCase):
         ]
         self.assertTrue(recommended_names)
         self.assertIn(recommended_names[0], {"Python Programming", "Machine Learning"})
-

@@ -72,6 +72,14 @@ body {
 .survey-brand { letter-spacing: -0.04em; font-size: 18px; }
 .survey-quiet { color: var(--muted); font-size: 13px; }
 .survey-quiet:hover { color: var(--text); text-decoration: underline; }
+.survey-logout-form { display: inline; }
+.survey-logout-form .survey-quiet {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+}
 
 .survey-shell {
     flex: 1;

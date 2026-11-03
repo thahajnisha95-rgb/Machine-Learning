@@ -352,6 +352,8 @@
     var list = document.getElementById("resource-list");
     if (list && search) {
         var rows = Array.prototype.slice.call(list.querySelectorAll(".resource-row"));
+        var resourceRows = rows.filter(function (row) { return !row.hasAttribute("data-search-skill"); });
+        var skillRows = rows.filter(function (row) { return row.hasAttribute("data-search-skill"); });
         var diffSelect = document.getElementById("filter-difficulty");
         var catSelect = document.getElementById("filter-category");
         var empty = document.getElementById("filter-empty");
@@ -381,25 +383,32 @@
 
         function applyFilters() {
             var query = search.value.trim().toLowerCase();
+            var queryTerms = query.split(/\s+/).filter(Boolean);
             var difficulty = diffSelect ? diffSelect.value : "";
             var category = catSelect ? catSelect.value : "";
-            var shown = 0;
+            var shownResources = 0;
+            var shownSkills = 0;
             rows.forEach(function (row) {
                 var haystack = (row.getAttribute("data-search") || "").toLowerCase();
-                var visible = (!query || haystack.indexOf(query) !== -1)
+                var visible = (!row.hasAttribute("data-search-skill") || !!query)
+                    && queryTerms.every(function (term) { return haystack.indexOf(term) !== -1; })
                     && (!difficulty || row.getAttribute("data-difficulty") === difficulty)
                     && (!category || row.getAttribute("data-category") === category);
                 row.hidden = !visible;
-                if (visible) shown += 1;
+                if (visible && row.hasAttribute("data-search-skill")) shownSkills += 1;
+                else if (visible) shownResources += 1;
             });
-            if (count) count.textContent = "Showing " + shown + " of " + rows.length;
-            if (empty) empty.hidden = shown !== 0;
+            if (count) {
+                count.textContent = "Showing " + shownResources + " of " + resourceRows.length
+                    + " resources and " + shownSkills + " of " + skillRows.length + " skills";
+            }
+            if (empty) empty.hidden = shownResources + shownSkills !== 0;
         }
 
         fill(diffSelect, "data-difficulty");
         fill(catSelect, "data-category");
         search.addEventListener("input", function () {
-            if (search.value.trim()) showView("learning-resources", { hash: true });
+            showView(search.value.trim() ? "learning-resources" : "overview", { hash: true });
             applyFilters();
         });
         if (diffSelect) diffSelect.addEventListener("change", function () {

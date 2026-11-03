@@ -16,7 +16,6 @@
         <label class="sr-only" for="global-search">Search learning resources</label>
         <svg class="icon search-icon" aria-hidden="true"><use href="#i-search"></use></svg>
         <input id="global-search" name="q" type="search" placeholder="Search skills, courses, or resources" value="{{ request.GET.q }}" aria-keyshortcuts="/" autocomplete="off">
-        <kbd aria-hidden="true">/</kbd>
     </form>
 
     <div class="topnav-actions">
@@ -33,7 +32,10 @@
             <div class="account-panel">
                 <p class="account-id">{{ request.user.username }}</p>
                 <a href="{% url 'edit_profile' %}"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg> Profile</a>
-                <a href="{% url 'logout' %}"><svg class="icon" aria-hidden="true"><use href="#i-logout"></use></svg> Log out</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit"><svg class="icon" aria-hidden="true"><use href="#i-logout"></use></svg> Log out</button>
+                </form>
             </div>
         </details>
         {% if profile_save %}

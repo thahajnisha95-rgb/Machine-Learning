@@ -3,7 +3,7 @@
     data-difficulty="{{ res.difficulty }}"
     data-skill="{{ row_skill }}"
     data-category="{% firstof res.category res.skill.category %}"
-    data-search="{{ res.title }} {{ res.description }} {{ row_skill }} {{ res.platform }} {{ res.resource_type }} {{ res.difficulty }} {% firstof res.category res.skill.category %}">
+    data-search="{{ res.title }} {{ res.description }} {{ row_skill }} {{ res.platform }} {{ res.resource_type }} {{ res.difficulty }} {{ res.skill.category }} {{ res.skill.keywords }}">
     <div class="resource-info">
         <div class="resource-title">{{ res.title }}</div>
         {% if res.description %}

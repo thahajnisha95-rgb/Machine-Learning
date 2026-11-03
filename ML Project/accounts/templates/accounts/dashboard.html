@@ -50,7 +50,7 @@
                                             <circle class="ring-track" cx="120" cy="120" r="80"/>
                                             <circle class="ring-track" cx="120" cy="120" r="58"/>
                                             <circle class="ring-track" cx="120" cy="120" r="36"/>
-                                            {% for rec in recommendations.recommended_skills|slice:":4" %}
+                                            {% for rec in recommendations.recommended_skills %}
                                                 {% if rec.match_percentage > 0 %}
                                                 <circle
                                                     class="ring-arc {% if forloop.counter == 1 %}match-a{% elif forloop.counter == 2 %}match-b{% elif forloop.counter == 3 %}match-c{% else %}match-d{% endif %}"
@@ -145,69 +145,6 @@
                     {% endif %}
                 </section>
 
-                <section class="panel" aria-labelledby="path-title">
-                    <div class="panel-head">
-                        <div>
-                            <h2 id="path-title">Learning path</h2>
-                            <p class="support">The first recommended resources, with the status already saved on your account.</p>
-                        </div>
-                        <a class="link-all" href="{% url 'dashboard' %}#my-learning">View my learning</a>
-                    </div>
-                    {% if recommendations and recommendations.recommended_resources %}
-                        <div class="path-track">
-                            {% for res in recommendations.recommended_resources|slice:":4" %}
-                                <article class="path-step">
-                                    <span class="path-index" aria-hidden="true">{{ forloop.counter }}</span>
-                                    <h3>{{ res.title }}</h3>
-                                    <p>{{ res.skill_name }} · {{ res.difficulty }}</p>
-                                    {% if res.id in resource_status_map %}
-                                        {% for r_id, status in resource_status_map.items %}
-                                            {% if r_id == res.id %}
-                                                <span class="status status-{{ status }}">
-                                                    {% if status == "completed" %}Completed{% elif status == "in_progress" %}In Progress{% elif status == "saved" %}Saved{% else %}{{ status }}{% endif %}
-                                                </span>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% else %}
-                                        <span class="status">Not started</span>
-                                    {% endif %}
-                                </article>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="empty">No learning path yet. Update your interests to generate resources.</p>
-                    {% endif %}
-                </section>
-
-                <section class="panel" aria-labelledby="preview-title">
-                    <div class="panel-head">
-                        <div>
-                            <h2 id="preview-title">All Learning Resources</h2>
-                            <p class="support">Browse all available courses, tutorials, and documentation across every skill.</p>
-                        </div>
-                        <a class="link-all" href="{% url 'dashboard' %}#learning-resources">View all</a>
-                    </div>
-                    {% if learning_resources %}
-                        <ul class="preview-list">
-                            {% for res in learning_resources %}
-                                <li class="preview-row">
-                                    <div>
-                                        <div class="resource-title">{{ res.title }}</div>
-                                        {% if res.description %}<p class="resource-desc">{{ res.description }}</p>{% endif %}
-                                        <div class="resource-meta">
-                                            <span class="tag">{{ res.skill.name }}</span>
-                                            <span class="meta-pill">{{ res.platform }}</span>
-                                            <span class="diff diff-{{ res.difficulty|slugify }}">{{ res.difficulty }}</span>
-                                        </div>
-                                    </div>
-                                    <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn-link">Open <svg class="icon" aria-hidden="true"><use href="#i-external"></use></svg></a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="empty">No learning resources found for the current criteria.</p>
-                    {% endif %}
-                </section>
             </div>
 
             <aside class="dash-side" aria-label="Dashboard summary">
@@ -217,7 +154,7 @@
                     <a href="{% url 'dashboard' %}#skill-recommendations">View skill matches</a>
                 </section>
 
-                <section class="panel" aria-labelledby="side-skills-title">
+                <section class="panel recommended-skills-panel" aria-labelledby="side-skills-title">
                     <div class="panel-head">
                         <h2 id="side-skills-title">Recommended skills</h2>
                         <a class="link-all" href="{% url 'dashboard' %}#skill-recommendations">View all</a>
@@ -272,6 +209,71 @@
                     </div>
                 </section>
             </aside>
+
+            <section class="panel dash-wide" aria-labelledby="path-title">
+                <div class="panel-head">
+                    <div>
+                        <h2 id="path-title">Learning path</h2>
+                        <p class="support">The first recommended resources, with the status already saved on your account.</p>
+                    </div>
+                    <a class="link-all" href="{% url 'dashboard' %}#my-learning">View my learning</a>
+                </div>
+                {% if recommendations and recommendations.recommended_resources %}
+                    <div class="path-track">
+                        {% for res in recommendations.recommended_resources|slice:":4" %}
+                            <article class="path-step">
+                                <span class="path-index" aria-hidden="true">{{ forloop.counter }}</span>
+                                <h3>{{ res.title }}</h3>
+                                <p>{{ res.skill_name }} · {{ res.difficulty }}</p>
+                                {% if res.id in resource_status_map %}
+                                    {% for r_id, status in resource_status_map.items %}
+                                        {% if r_id == res.id %}
+                                            <span class="status status-{{ status }}">
+                                                {% if status == "completed" %}Completed{% elif status == "in_progress" %}In Progress{% elif status == "saved" %}Saved{% else %}{{ status }}{% endif %}
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="status">Not started</span>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty">No learning path yet. Update your interests to generate resources.</p>
+                {% endif %}
+            </section>
+
+            <section class="panel dash-wide" aria-labelledby="preview-title">
+                <div class="panel-head">
+                    <div>
+                        <h2 id="preview-title">All Learning Resources</h2>
+                        <p class="support">Browse all available courses, tutorials, and documentation across every skill.</p>
+                    </div>
+                    <a class="link-all" href="{% url 'dashboard' %}#learning-resources" aria-label="View all learning resources">View all</a>
+                </div>
+                {% if learning_resources %}
+                    <ul class="preview-list">
+                        {% for res in learning_resources %}
+                            <li class="preview-row">
+                                <div>
+                                    <div class="resource-title">{{ res.title }}</div>
+                                    {% if res.description %}<p class="resource-desc">{{ res.description }}</p>{% endif %}
+                                    <div class="resource-meta">
+                                        <span class="tag">{{ res.skill.name }}</span>
+                                        <span class="meta-pill">{{ res.platform }}</span>
+                                        <span class="diff diff-{{ res.difficulty|slugify }}">{{ res.difficulty }}</span>
+                                    </div>
+                                </div>
+                                <a href="{{ res.url }}" target="_blank" rel="noopener noreferrer" class="btn-link">Open <svg class="icon" aria-hidden="true"><use href="#i-external"></use></svg></a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="empty">No learning resources found for the current criteria.</p>
+                {% endif %}
+            </section>
+
         </div>
     </section>
 
@@ -348,11 +350,29 @@
                 </div>
             </div>
             <ul id="resource-list" class="resource-list">
+                {% for skill in searchable_skills %}
+                    <li class="resource-row skill-search-result"
+                        data-search-skill
+                        data-category="{{ skill.category }}"
+                        data-search="{{ skill.name }} {{ skill.description }} {{ skill.category }} {{ skill.keywords }}">
+                        <div class="resource-info">
+                            <div class="resource-title">{{ skill.name }}</div>
+                            {% if skill.description %}
+                                <p class="resource-desc" title="{{ skill.description }}">{{ skill.description }}</p>
+                            {% endif %}
+                            <div class="resource-meta">
+                                {% if skill.category %}<span class="tag">{{ skill.category }}</span>{% endif %}
+                                {% if skill.keywords %}<span class="meta-pill">{{ skill.keywords }}</span>{% endif %}
+                                <span class="meta-pill">Skill</span>
+                            </div>
+                        </div>
+                        </li>
+                {% endfor %}
                 {% for res in learning_resources %}
                     {% include "accounts/partials/resource_row.html" %}
                 {% endfor %}
             </ul>
-            <p id="filter-empty" class="empty" hidden>No learning resources match these filters.</p>
+            <p id="filter-empty" class="empty" hidden>No matching resources found.</p>
         {% else %}
             <p class="empty">No learning resources are available yet.</p>
         {% endif %}

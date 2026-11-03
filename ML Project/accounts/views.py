@@ -457,11 +457,13 @@ def dashboard(request):
         is_active=True
     ).select_related("skill")
     total_resources = learning_resources.count()
+    searchable_skills = Skill.objects.all()
 
     context = {
         "profile": profile,
         "recommendations": recommendation_data,
         "learning_resources": learning_resources,
+        "searchable_skills": searchable_skills,
         "progress_records": progress_qs,
         "completed_count": completed_count,
         "in_progress_count": in_progress_count,

@@ -32,7 +32,10 @@ urlpatterns = [
     ),
     path(
         "logout/",
-        auth_views.LogoutView.as_view(http_method_names=["get", "post", "options"]),
+        auth_views.LogoutView.as_view(
+            next_page="login",
+            http_method_names=["post", "options"],
+        ),
         name="logout",
     ),
 ]
