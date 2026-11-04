@@ -1,13 +1,18 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from django.views.generic import RedirectView
+from django.contrib.auth.forms import AuthenticationForm
 from . import views
-from .forms import StyledAuthenticationForm
+
+try:
+    from .forms import StyledAuthenticationForm as LoginForm
+except ImportError:
+    LoginForm = AuthenticationForm
 
 urlpatterns = [
-    path("", RedirectView.as_view(pattern_name="register"), name="home"),
+    path("", views.marketing_home, name="home"),
     path("register/", views.register, name="register"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("welcome/", views.onboarding, name="onboarding"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path("progress/<int:resource_id>/toggle/", views.toggle_resource_progress, name="toggle_resource_progress"),
 
@@ -19,16 +24,18 @@ urlpatterns = [
     # Authentication
     path(
         "login/",
-        auth_views.LoginView.as_view(
+        views.SkillmatchLoginView.as_view(
             template_name="accounts/login.html",
-            authentication_form=StyledAuthenticationForm,
-            redirect_authenticated_user=True,
+            authentication_form=LoginForm,
         ),
         name="login",
     ),
     path(
         "logout/",
-        auth_views.LogoutView.as_view(http_method_names=["get", "post", "options"]),
+        auth_views.LogoutView.as_view(
+            next_page="login",
+            http_method_names=["post", "options"],
+        ),
         name="logout",
     ),
 ]

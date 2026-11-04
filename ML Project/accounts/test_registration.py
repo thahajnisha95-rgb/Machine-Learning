@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from .registration_forms import StudentRegistrationForm
@@ -53,6 +53,7 @@ class StudentRegistrationFormTests(TestCase):
         self.assertContains(response, 'class="right-panel"')
         self.assertContains(response, 'class="btn-register"')
         self.assertContains(response, "10 letters or numbers")
+        self.assertContains(response, 'class="password-toggle" data-password-toggle', count=2)
         self.assertNotContains(response, "illustration-wrap")
         self.assertNotContains(response, "login-photo.jpg")
         self.assertNotContains(response, "<img")
@@ -68,6 +69,15 @@ class StudentRegistrationFormTests(TestCase):
         user = User.objects.get(username="student123")
         self.assertTrue(user.check_password("N7vQp4x!"))
         self.assertTrue(hasattr(user, "studentprofile"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+        login_response = self.client.post(reverse("login"), data={
+            "username": "student123",
+            "password": "N7vQp4x!",
+        })
+        self.assertRedirects(login_response, reverse("onboarding"))
+        survey_response = self.client.get(reverse("onboarding"))
+        self.assertContains(survey_response, "May we start with the name you like to be called?")
 
     def test_authenticated_user_is_redirected_away_from_registration(self):
         user = User.objects.create_user(username="student123", password="N7vQp4x!")
@@ -75,32 +85,88 @@ class StudentRegistrationFormTests(TestCase):
 
         response = self.client.get(reverse("register"))
 
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertRedirects(response, reverse("onboarding"))
 
-    def test_logout_redirects_to_registration_page(self):
+    def test_logout_redirects_to_login_and_protects_dashboard(self):
         user = User.objects.create_user(username="student123", password="N7vQp4x!")
         self.client.force_login(user)
 
         response = self.client.post(reverse("logout"), follow=True)
 
-        self.assertRedirects(response, reverse("register"))
+        self.assertRedirects(response, reverse("login"))
         self.assertNotIn("_auth_user_id", self.client.session)
-        self.assertContains(response, "Create your account")
+        self.assertContains(response, "Welcome back")
+        self.assertContains(response, "Sign in to continue")
+        self.assertNotContains(response, "Django administration")
+
+        dashboard_response = self.client.get(reverse("dashboard"))
+        self.assertRedirects(
+            dashboard_response,
+            f"{reverse('login')}?next={reverse('dashboard')}",
+        )
+
+        duplicate_response = self.client.post(reverse("register"), data={
+            "username": "student123",
+            "password1": "N7vQp4x!",
+            "password2": "N7vQp4x!",
+        })
+        self.assertEqual(duplicate_response.status_code, 200)
+        self.assertEqual(User.objects.filter(username="student123").count(), 1)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_logout_requires_post(self):
+        user = User.objects.create_user(username="logoutcheck")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("logout"))
+
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_login_page_matches_image_free_dashboard_theme(self):
         response = self.client.get(reverse("login"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="auth-card"')
-        self.assertContains(response, "background: #f5f6f8")
-        self.assertContains(response, "background: #4f46e5")
+        self.assertContains(response, "--bg: #050505")
+        self.assertContains(response, "background: var(--solid)")
         self.assertNotContains(response, "login-photo.jpg")
         self.assertNotContains(response, "<img")
 
-    def test_authenticated_user_is_redirected_away_from_login(self):
+    def test_sign_in_shows_login_page_even_when_a_session_exists(self):
         user = User.objects.create_user(username="student123", password="N7vQp4x!")
         self.client.force_login(user)
 
         response = self.client.get(reverse("login"))
 
-        self.assertRedirects(response, reverse("dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Welcome back")
+        self.assertContains(response, 'class="btn-signin"')
+
+    def test_stale_login_csrf_token_returns_to_sign_in(self):
+        client = Client(enforce_csrf_checks=True)
+        client.get(reverse("login"))
+
+        response = client.post(reverse("login"), {
+            "username": "student123",
+            "password": "N7vQp4x!",
+            "csrfmiddlewaretoken": "stale-token",
+        }, follow=True)
+
+        self.assertRedirects(response, reverse("login"), status_code=302, target_status_code=200)
+        self.assertContains(response, "That form expired")
+        self.assertContains(response, "Welcome back")
+
+    def test_valid_csrf_login_still_signs_in(self):
+        User.objects.create_user(username="student123", password="N7vQp4x!")
+        client = Client(enforce_csrf_checks=True)
+        login_page = client.get(reverse("login"))
+        token = str(login_page.context["csrf_token"])
+
+        response = client.post(reverse("login"), {
+            "username": "student123",
+            "password": "N7vQp4x!",
+            "csrfmiddlewaretoken": token,
+        })
+
+        self.assertRedirects(response, reverse("onboarding"))

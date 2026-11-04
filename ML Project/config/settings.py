@@ -124,4 +124,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/register/"
+LOGOUT_REDIRECT_URL = "login"
+CSRF_FAILURE_VIEW = "accounts.views.csrf_failure"
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://thagajunnisha.pythonanywhere.com",
+]

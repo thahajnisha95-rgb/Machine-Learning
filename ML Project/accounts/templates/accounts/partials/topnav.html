@@ -6,7 +6,7 @@
     <div class="page-heading">
         <nav class="crumb" aria-label="Breadcrumb">
             <ol>
-                <li><a href="{% url 'dashboard' %}">LearnPath</a></li>
+                <li><a href="{% url 'dashboard' %}">Skillmatch</a></li>
                 <li id="crumb-current" aria-current="page">{{ crumb|default:"Dashboard" }}</li>
             </ol>
         </nav>
@@ -16,14 +16,9 @@
         <label class="sr-only" for="global-search">Search learning resources</label>
         <svg class="icon search-icon" aria-hidden="true"><use href="#i-search"></use></svg>
         <input id="global-search" name="q" type="search" placeholder="Search skills, courses, or resources" value="{{ request.GET.q }}" aria-keyshortcuts="/" autocomplete="off">
-        <kbd aria-hidden="true">/</kbd>
     </form>
 
     <div class="topnav-actions">
-        <a class="btn btn-ghost btn-api" href="{% url 'api_recommendations' %}" target="_blank" rel="noopener noreferrer">
-            <span class="api-full">Recommendations API</span>
-            <span class="api-short">API</span>
-        </a>
         <button type="button" id="theme-toggle" class="icon-btn" aria-pressed="false" aria-label="Switch to dark theme">
             <svg class="icon icon-moon" aria-hidden="true"><use href="#i-moon"></use></svg>
             <svg class="icon icon-sun" aria-hidden="true"><use href="#i-sun"></use></svg>
@@ -37,8 +32,14 @@
             <div class="account-panel">
                 <p class="account-id">{{ request.user.username }}</p>
                 <a href="{% url 'edit_profile' %}"><svg class="icon" aria-hidden="true"><use href="#i-user"></use></svg> Profile</a>
-                <a href="{% url 'logout' %}"><svg class="icon" aria-hidden="true"><use href="#i-logout"></use></svg> Log out</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit"><svg class="icon" aria-hidden="true"><use href="#i-logout"></use></svg> Log out</button>
+                </form>
             </div>
         </details>
+        {% if profile_save %}
+            <button type="submit" form="student-profile-form" class="btn btn-save">Save</button>
+        {% endif %}
     </div>
 </header>

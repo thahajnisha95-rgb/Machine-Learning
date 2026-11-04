@@ -11,6 +11,8 @@ class StudentProfile(models.Model):
     course = models.CharField(max_length=100)
     year_of_study = models.PositiveIntegerField()
     interests = models.TextField(blank=True)
+    learning_goal = models.CharField(max_length=120, blank=True)
+    onboarding_complete = models.BooleanField(default=False)
 
     def get_interests_list(self):
         if not self.interests:
@@ -18,6 +20,18 @@ class StudentProfile(models.Model):
         import re
         tokens = re.split(r'[,;\n]+', self.interests)
         return [t.strip() for t in tokens if t.strip()]
+
+    def needs_onboarding(self):
+        """True until the student finishes the welcome survey with a name, course, and interests."""
+        if not self.onboarding_complete:
+            return True
+        if not (self.full_name or "").strip():
+            return True
+        if not (self.course or "").strip():
+            return True
+        if not self.get_interests_list():
+            return True
+        return False
 
     def __str__(self):
         return self.full_name or f"Profile for {self.user.username}"
@@ -116,4 +130,4 @@ class StudentResourceProgress(models.Model):
 
     def __str__(self):
         return f"{self.profile.full_name} - {self.resource.title} [{self.status}]"
-
+
