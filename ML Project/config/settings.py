@@ -10,22 +10,62 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _env_flag(name, default=False):
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _load_secret_key():
+    env_key = (os.environ.get("DJANGO_SECRET_KEY") or "").strip()
+    if env_key:
+        return env_key
+    secret_file = BASE_DIR / ".secret_key"
+    if secret_file.is_file():
+        stored = secret_file.read_text(encoding="utf-8").strip()
+        if stored:
+            return stored
+    if DJANGO_PRODUCTION:
+        from django.core.management.utils import get_random_secret_key
+        generated = get_random_secret_key()
+        secret_file.write_text(generated, encoding="utf-8")
+        try:
+            os.chmod(secret_file, 0o600)
+        except OSError:
+            pass
+        return generated
+    return "django-insecure-z2^&dzlf%f5=p4qps4f2aowy*g80nsmym=(-)v8ms6#r#rzeug"
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z2^&dzlf%f5=p4qps4f2aowy*g80nsmym=(-)v8ms6#r#rzeug'
+RUNNING_ON_PYTHONANYWHERE = bool(
+    os.environ.get("PYTHONANYWHERE_SITE") or os.environ.get("PYTHONANYWHERE_DOMAIN")
+)
+DJANGO_PRODUCTION = _env_flag("DJANGO_PRODUCTION", default=RUNNING_ON_PYTHONANYWHERE)
+DEBUG = _env_flag("DJANGO_DEBUG", default=not DJANGO_PRODUCTION)
+SECRET_KEY = _load_secret_key()
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "thagajunnisha.pythonanywhere.com"]
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "thagajunnisha.pythonanywhere.com",
+    ".pythonanywhere.com",
+]
+ALLOWED_HOSTS.extend(
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+)
 
 
 # Application definition
@@ -130,4 +170,13 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "https://thagajunnisha.pythonanywhere.com",
+    "https://*.pythonanywhere.com",
 ]
+
+if DJANGO_PRODUCTION:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    X_FRAME_OPTIONS = "DENY"
