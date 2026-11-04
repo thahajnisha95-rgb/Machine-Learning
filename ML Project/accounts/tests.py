@@ -596,3 +596,34 @@ class DeploySettingsTests(TestCase):
         )
         self.assertEqual(settings.CSRF_FAILURE_VIEW, "accounts.views.csrf_failure")
         self.assertFalse(settings.DJANGO_PRODUCTION)
+
+    def test_local_database_stays_sqlite(self):
+        from django.conf import settings
+
+        self.assertEqual(
+            settings.DATABASES["default"]["ENGINE"],
+            "django.db.backends.sqlite3",
+        )
+
+    def test_vercel_hosts_are_trusted(self):
+        from django.conf import settings
+
+        self.assertIn(".vercel.app", settings.ALLOWED_HOSTS)
+        self.assertIn("https://*.vercel.app", settings.CSRF_TRUSTED_ORIGINS)
+
+    def test_database_url_uses_postgres_without_touching_sqlite_default(self):
+        from config.settings import _database_from_url
+
+        config = _database_from_url(
+            "postgres://skill:p%40ss@db.example.com:5432/skillmatch",
+            serverless=True,
+        )
+        self.assertEqual(config["ENGINE"], "django.db.backends.postgresql")
+        self.assertEqual(config["USER"], "skill")
+        self.assertEqual(config["PASSWORD"], "p@ss")
+        self.assertEqual(config["NAME"], "skillmatch")
+        self.assertEqual(config["HOST"], "db.example.com")
+        self.assertEqual(config["CONN_MAX_AGE"], 0)
+        self.assertEqual(config["OPTIONS"]["sslmode"], "require")
+        sqlite = _database_from_url("", serverless=False)
+        self.assertEqual(sqlite["ENGINE"], "django.db.backends.sqlite3")

@@ -18,7 +18,11 @@ project_path = str(BASE_DIR)
 if project_path not in sys.path:
     sys.path.insert(0, project_path)
 
-if os.environ.get("PYTHONANYWHERE_SITE") or os.environ.get("PYTHONANYWHERE_DOMAIN"):
+if (
+    os.environ.get("PYTHONANYWHERE_SITE")
+    or os.environ.get("PYTHONANYWHERE_DOMAIN")
+    or os.environ.get("VERCEL") == "1"
+):
     os.environ["DJANGO_PRODUCTION"] = "1"
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
