@@ -166,6 +166,7 @@ class StudentProfileTests(TestCase):
             with self.subTest(course=course):
                 form = StudentProfileForm(data={
                     "full_name": "Jane Smith",
+                    "username": "jane_smith",
                     "course": course,
                     "year_of_study": year_count,
                     "interests": "Python",
@@ -179,6 +180,7 @@ class StudentProfileTests(TestCase):
     def test_profile_form_rejects_year_outside_course_duration(self):
         form = StudentProfileForm(data={
             "full_name": "Jane Smith",
+            "username": "jane_smith",
             "course": "BCA Data Science",
             "year_of_study": 4,
             "interests": "Python",
