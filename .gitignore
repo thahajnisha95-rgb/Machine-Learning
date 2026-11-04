@@ -16,3 +16,4 @@ recommender_model.json
 
 # Secrets
 .env
+.secret_key

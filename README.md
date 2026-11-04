@@ -18,3 +18,26 @@ python manage.py runserver 127.0.0.1:8000
 The site opens at http://127.0.0.1:8000/.
 
 In VS Code, run the **Skillmatch** task (Terminal > Run Task) or start the **Skillmatch** launch configuration. Both start the Django app in `ML Project`.
+
+## Deploy (PythonAnywhere)
+
+Local `runserver` stays in debug mode. On PythonAnywhere the app turns production mode on by itself.
+
+After pulling `main`:
+
+```bash
+cd "/home/thagajunnisha/Machine-Learning/ML Project"
+python manage.py migrate
+python manage.py seed_data
+python manage.py train_recommender
+python manage.py collectstatic --noinput
+```
+
+Then in the PythonAnywhere Web tab:
+
+1. Source code: `/home/thagajunnisha/Machine-Learning/ML Project`
+2. WSGI file: paste `ML Project/config/pythonanywhere_wsgi.py`
+3. Static files: URL `/static/` → directory `/home/thagajunnisha/Machine-Learning/ML Project/staticfiles`
+4. Reload the site
+
+Change `PROJECT_HOME` in the WSGI file if the clone path is different.

@@ -581,3 +581,18 @@ class OnboardingSurveyTests(TestCase):
         ]
         self.assertTrue(recommended_names)
         self.assertIn(recommended_names[0], {"Python Programming", "Machine Learning"})
+
+
+class DeploySettingsTests(TestCase):
+    """Production hosts stay allowed without changing local runserver."""
+
+    def test_pythonanywhere_host_is_trusted(self):
+        from django.conf import settings
+
+        self.assertIn("thagajunnisha.pythonanywhere.com", settings.ALLOWED_HOSTS)
+        self.assertIn(
+            "https://thagajunnisha.pythonanywhere.com",
+            settings.CSRF_TRUSTED_ORIGINS,
+        )
+        self.assertEqual(settings.CSRF_FAILURE_VIEW, "accounts.views.csrf_failure")
+        self.assertFalse(settings.DJANGO_PRODUCTION)
