@@ -41,3 +41,16 @@ Then in the PythonAnywhere Web tab:
 4. Reload the site
 
 Change `PROJECT_HOME` in the WSGI file if the clone path is different.
+
+## Deploy (Vercel)
+
+Local `runserver` still uses SQLite. Vercel cannot keep that file, so Skillmatch uses Vercel Postgres there and leaves local data alone.
+
+Import `thahajnisha95-rgb/Machine-Learning` on Rasheeda's Vercel account with:
+
+1. Root Directory: `ML Project` (not `MLproject`, not the repo root)
+2. Storage: add Postgres. Vercel sets `DATABASE_URL`
+3. Environment variable: `DJANGO_SECRET_KEY` (a long random value)
+4. Deploy from `main`
+
+Vercel turns production mode on by itself, collects static files, then runs migrate, seed, and the recommender train during the build.

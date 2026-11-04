@@ -16,4 +16,8 @@ recommender_model.json
 
 # Secrets
 .env
+.env.local
 .secret_key
+
+# Vercel CLI
+.vercel

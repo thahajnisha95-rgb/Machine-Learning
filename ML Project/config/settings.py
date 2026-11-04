@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import urllib.parse
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,10 +27,22 @@ def _env_flag(name, default=False):
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _hostname(value):
+    host = (value or "").strip()
+    if not host:
+        return ""
+    host = host.replace("https://", "").replace("http://", "").split("/")[0]
+    return host.strip()
+
+
 def _load_secret_key():
     env_key = (os.environ.get("DJANGO_SECRET_KEY") or "").strip()
     if env_key:
         return env_key
+    if RUNNING_ON_VERCEL:
+        raise ImproperlyConfigured(
+            "Set DJANGO_SECRET_KEY in the Vercel project environment."
+        )
     secret_file = BASE_DIR / ".secret_key"
     if secret_file.is_file():
         stored = secret_file.read_text(encoding="utf-8").strip()
@@ -45,13 +60,41 @@ def _load_secret_key():
     return "django-insecure-z2^&dzlf%f5=p4qps4f2aowy*g80nsmym=(-)v8ms6#r#rzeug"
 
 
+def _database_from_url(database_url, *, serverless=False):
+    database_url = (database_url or "").strip()
+    if not database_url:
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    url = urllib.parse.urlparse(database_url)
+    if url.scheme not in {"postgres", "postgresql"}:
+        raise ImproperlyConfigured("DATABASE_URL must be a postgres URL.")
+    query = urllib.parse.parse_qs(url.query)
+    sslmode = (query.get("sslmode") or ["require" if serverless else "prefer"])[0]
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": urllib.parse.unquote(url.path.lstrip("/")),
+        "USER": urllib.parse.unquote(url.username or ""),
+        "PASSWORD": urllib.parse.unquote(url.password or ""),
+        "HOST": url.hostname or "",
+        "PORT": str(url.port or "5432"),
+        "CONN_MAX_AGE": 0 if serverless else 60,
+        "OPTIONS": {"sslmode": sslmode},
+    }
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 RUNNING_ON_PYTHONANYWHERE = bool(
     os.environ.get("PYTHONANYWHERE_SITE") or os.environ.get("PYTHONANYWHERE_DOMAIN")
 )
-DJANGO_PRODUCTION = _env_flag("DJANGO_PRODUCTION", default=RUNNING_ON_PYTHONANYWHERE)
+RUNNING_ON_VERCEL = os.environ.get("VERCEL") == "1"
+DJANGO_PRODUCTION = _env_flag(
+    "DJANGO_PRODUCTION",
+    default=RUNNING_ON_PYTHONANYWHERE or RUNNING_ON_VERCEL,
+)
 DEBUG = _env_flag("DJANGO_DEBUG", default=not DJANGO_PRODUCTION)
 SECRET_KEY = _load_secret_key()
 
@@ -60,7 +103,16 @@ ALLOWED_HOSTS = [
     "localhost",
     "thagajunnisha.pythonanywhere.com",
     ".pythonanywhere.com",
+    ".vercel.app",
 ]
+for _vercel_key in (
+    "VERCEL_URL",
+    "VERCEL_PROJECT_PRODUCTION_URL",
+    "VERCEL_BRANCH_URL",
+):
+    _vercel_host = _hostname(os.environ.get(_vercel_key, ""))
+    if _vercel_host and _vercel_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_vercel_host)
 ALLOWED_HOSTS.extend(
     host.strip()
     for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
@@ -115,10 +167,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": _database_from_url(
+        os.environ.get("DATABASE_URL", ""),
+        serverless=RUNNING_ON_VERCEL,
+    )
 }
 
 
@@ -156,7 +208,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -171,7 +223,23 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "https://thagajunnisha.pythonanywhere.com",
     "https://*.pythonanywhere.com",
+    "https://*.vercel.app",
 ]
+for _vercel_key in (
+    "VERCEL_URL",
+    "VERCEL_PROJECT_PRODUCTION_URL",
+    "VERCEL_BRANCH_URL",
+):
+    _vercel_host = _hostname(os.environ.get(_vercel_key, ""))
+    if _vercel_host:
+        _origin = f"https://{_vercel_host}"
+        if _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
+CSRF_TRUSTED_ORIGINS.extend(
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+)
 
 if DJANGO_PRODUCTION:
     SESSION_COOKIE_SECURE = True

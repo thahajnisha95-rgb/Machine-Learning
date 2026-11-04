@@ -1,0 +1,12 @@
+MLproject
+MLproject.zip
+.venv
+venv
+**/__pycache__
+**/*.pyc
+staticfiles
+db.sqlite3
+.env
+.env.local
+.secret_key
+.vscode
