@@ -1,6 +1,6 @@
 # ML Project
 
-This directory was prepared from the archive `MLproject.zip` in the repository root.
+This folder is the live Skillmatch Django app.
 
 The archive appears to contain a Django / machine-learning project with the following structure:
 
@@ -29,8 +29,7 @@ The archive appears to contain a Django / machine-learning project with the foll
 - `recommender_model.json`
 - `student_learning_system.py`
 
-Note: the original archive is still present at the repository root as `MLproject.zip`.
-This folder is the extracted project directory created in the repository for organization and access.
+This folder is the project directory used for local run and deploy.
 
 ## Run locally
 
