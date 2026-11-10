@@ -36,6 +36,11 @@ class AccessPermissionTests(TestCase):
         self.assertContains(response, reverse("login"))
         self.assertContains(response, reverse("register"))
 
+    def test_healthz_is_public_and_cheap(self):
+        response = self.client.get(reverse("healthz"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"ok")
+
     def test_unauthenticated_dashboard_redirects(self):
         response = self.client.get(reverse("dashboard"))
         self.assertEqual(response.status_code, 302)
@@ -627,3 +632,23 @@ class DeploySettingsTests(TestCase):
         self.assertEqual(config["OPTIONS"]["sslmode"], "require")
         sqlite = _database_from_url("", serverless=False)
         self.assertEqual(sqlite["ENGINE"], "django.db.backends.sqlite3")
+
+    def test_vercel_prefers_pooled_postgres_url(self):
+        from config.settings import _pick_database_url, _migrate_database_url, _database_from_url
+
+        env = {
+            "DATABASE_URL": "postgres://skill:p%40ss@direct.example.com:5432/skillmatch",
+            "POSTGRES_URL": "postgres://skill:p%40ss@pooler.example.com:6543/skillmatch",
+            "POSTGRES_URL_NON_POOLING": "postgres://skill:p%40ss@direct.example.com:5432/skillmatch",
+        }
+        self.assertEqual(
+            _pick_database_url(env, serverless=True),
+            env["POSTGRES_URL"],
+        )
+        self.assertEqual(
+            _migrate_database_url(env),
+            env["POSTGRES_URL_NON_POOLING"],
+        )
+        pooled = _database_from_url(env["POSTGRES_URL"], serverless=True)
+        self.assertTrue(pooled["DISABLE_SERVER_SIDE_CURSORS"])
+        self.assertEqual(pooled["PORT"], "6543")
