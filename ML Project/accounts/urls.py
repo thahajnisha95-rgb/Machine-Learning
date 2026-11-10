@@ -10,6 +10,7 @@ except ImportError:
 
 urlpatterns = [
     path("", views.marketing_home, name="home"),
+    path("healthz/", views.healthz, name="healthz"),
     path("register/", views.register, name="register"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("welcome/", views.onboarding, name="onboarding"),

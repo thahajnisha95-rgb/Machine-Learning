@@ -60,6 +60,36 @@ def _load_secret_key():
     return "django-insecure-z2^&dzlf%f5=p4qps4f2aowy*g80nsmym=(-)v8ms6#r#rzeug"
 
 
+def _is_postgres_url(value):
+    value = (value or "").strip()
+    return value.startswith("postgres://") or value.startswith("postgresql://")
+
+
+def _pick_database_url(env=None, *, serverless=False):
+    env = os.environ if env is None else env
+    if serverless:
+        for key in ("POSTGRES_URL", "DATABASE_URL"):
+            value = (env.get(key) or "").strip()
+            if _is_postgres_url(value):
+                return value
+        return ""
+    return (env.get("DATABASE_URL") or "").strip()
+
+
+def _migrate_database_url(env=None):
+    env = os.environ if env is None else env
+    for key in (
+        "POSTGRES_URL_NON_POOLING",
+        "DATABASE_URL_UNPOOLED",
+        "DATABASE_URL",
+        "POSTGRES_URL",
+    ):
+        value = (env.get(key) or "").strip()
+        if _is_postgres_url(value):
+            return value
+    return ""
+
+
 def _database_from_url(database_url, *, serverless=False):
     database_url = (database_url or "").strip()
     if not database_url:
@@ -72,7 +102,7 @@ def _database_from_url(database_url, *, serverless=False):
         raise ImproperlyConfigured("DATABASE_URL must be a postgres URL.")
     query = urllib.parse.parse_qs(url.query)
     sslmode = (query.get("sslmode") or ["require" if serverless else "prefer"])[0]
-    return {
+    config = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": urllib.parse.unquote(url.path.lstrip("/")),
         "USER": urllib.parse.unquote(url.username or ""),
@@ -82,6 +112,9 @@ def _database_from_url(database_url, *, serverless=False):
         "CONN_MAX_AGE": 0 if serverless else 60,
         "OPTIONS": {"sslmode": sslmode},
     }
+    if serverless:
+        config["DISABLE_SERVER_SIDE_CURSORS"] = True
+    return config
 
 
 # Quick-start development settings - unsuitable for production
@@ -168,7 +201,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     "default": _database_from_url(
-        os.environ.get("DATABASE_URL", ""),
+        _pick_database_url(serverless=RUNNING_ON_VERCEL),
         serverless=RUNNING_ON_VERCEL,
     )
 }
@@ -248,3 +281,17 @@ if DJANGO_PRODUCTION:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     X_FRAME_OPTIONS = "DENY"
+    TEMPLATES[0]["APP_DIRS"] = False
+    TEMPLATES[0]["OPTIONS"]["loaders"] = [
+        (
+            "django.template.loaders.cached.Loader",
+            [
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+            ],
+        )
+    ]
+
+if RUNNING_ON_VERCEL:
+    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+    MESSAGE_STORAGE = "django.contrib.messages.storage.cookie.CookieStorage"

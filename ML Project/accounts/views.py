@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 
@@ -227,6 +227,11 @@ def survey_interest_options():
     return labels
 
 
+def healthz(request):
+    """Cheap liveness check used by the host. Does not touch the database."""
+    return HttpResponse("ok", content_type="text/plain")
+
+
 def marketing_home(request):
     """Public product page. Sign-in continues through the existing login flow."""
     skills = list(
@@ -444,7 +449,15 @@ def dashboard(request):
             rec.chart_label = _skill_chart_label(rec.skill_name)
 
     # Student progress records and metrics
-    progress_qs = StudentResourceProgress.objects.filter(profile=profile) if profile else []
+    progress_qs = (
+        list(
+            StudentResourceProgress.objects.filter(profile=profile).select_related(
+                "resource", "resource__skill"
+            )
+        )
+        if profile
+        else []
+    )
     completed_count = sum(1 for p in progress_qs if p.status == 'completed')
     in_progress_count = sum(1 for p in progress_qs if p.status == 'in_progress')
     saved_count = sum(1 for p in progress_qs if p.status == 'saved')
@@ -452,12 +465,12 @@ def dashboard(request):
     # Mapping of resource_id -> status for template lookups
     resource_status_map = {p.resource_id: p.status for p in progress_qs}
 
-    total_skills = Skill.objects.count()
-    learning_resources = LearningResource.objects.filter(
-        is_active=True
-    ).select_related("skill")
-    total_resources = learning_resources.count()
-    searchable_skills = Skill.objects.all()
+    searchable_skills = list(Skill.objects.all())
+    total_skills = len(searchable_skills)
+    learning_resources = list(
+        LearningResource.objects.filter(is_active=True).select_related("skill")
+    )
+    total_resources = len(learning_resources)
 
     context = {
         "profile": profile,
